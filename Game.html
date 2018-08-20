@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="Core/Mainloop.js"></script>
+<script src="/Core/Mainloop.js"></script>
 </head>
 <body>
 <div>
@@ -32,15 +32,15 @@
 
         if(FirstTick){
             FirstTick = false;
-            lstGameScripts = ["Game/GameObjects/GameObject.js"
-                                , "Game/GameObjects/SimpleBullet.js"
-                                , "Game/GameObjects/SimpleTurret.js"
-                                , "Game/GameObjects/PlayerObject.js"
-                                , "Game/Map/MapTiles.js"
-                                , "Game/Map/MapSprites.js"
-                                , "Game/Map/Level.js"
-                                , "Game/GameAssetLibrary.js"
-                                , "Game/GameplayLayer.js"];
+            lstGameScripts = ["/Game/GameObjects/GameObject.js"
+                                , "/Game/GameObjects/SimpleBullet.js"
+                                , "/Game/GameObjects/SimpleTurret.js"
+                                , "/Game/GameObjects/PlayerObject.js"
+                                , "/Game/Map/MapTiles.js"
+                                , "/Game/Map/MapSprites.js"
+                                , "/Game/Map/Level.js"
+                                , "/Game/GameAssetLibrary.js"
+                                , "/Game/GameplayLayer.js"];
 
             Core_LoadScripts(coreData, lstGameScripts, () =>{
                 coreData.AssetLibrary = new GameAssetLibrary();

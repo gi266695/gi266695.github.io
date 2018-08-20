@@ -96,16 +96,16 @@ function Core_Init(WindowObj, DocumentObj, ContainerElement, CorePath, TickCallB
     coreData.requestAnimationFrame_ID = coreData.WindowObj.requestAnimationFrame(Core_Tick);
 
     //This is the include order if your thing is in core and it is undefined this isWhy
-    lstCoreScripts = [(CorePath + "MathStuff.js")
-                        , "testing123.js"
-                        , (CorePath + "HitBoxes.js")
-                        , (CorePath + "Assets/BaseAsset.js")
-                        , (CorePath + "LayerStack.js")
-                        , (CorePath + "Assets/SpriteSheetAsset.js")
-                        , (CorePath + "Assets/SpriteAsset.js")
-                        , (CorePath + "Assets/AnimationAsset.js")
-                        , (CorePath + "Assets/AssetLibrary.js")
-                        , (CorePath + "InputManager.js")];
+    lstCoreScripts = [(CorePath + "/MathStuff.js")
+                        , "/testing123.js"
+                        , (CorePath + "/HitBoxes.js")
+                        , (CorePath + "/Assets/BaseAsset.js")
+                        , (CorePath + "/LayerStack.js")
+                        , (CorePath + "/Assets/SpriteSheetAsset.js")
+                        , (CorePath + "/Assets/SpriteAsset.js")
+                        , (CorePath + "/Assets/AnimationAsset.js")
+                        , (CorePath + "/Assets/AssetLibrary.js")
+                        , (CorePath + "/InputManager.js")];
     Core_LoadScripts(coreData, lstCoreScripts, Core_AfterScriptLoad);
 
     //actually start idle loop
