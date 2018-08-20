@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="Core/Mainloop.js"></script>
+</head>
+<body>
+<div>
+    <h2>Something Resembling a game</h2>
+    <p id="demo"></p>
+    <input id="inputCheckBox_ShowHitBoxes" type="checkbox">Show Hitboxes</input>
+    <input id="inputCheckBox_ShowSpriteBoxes" type="checkbox">Show SpriteBoxes</input>
+    <input id="inputCheckBox_ShowSpriteCenters" type="checkbox">Show Sprite Centers</input>
+</div>
+<div id="sourceWindow" style= "background:black;">
+</div>
+<script> //Mainloop should be loaded becuase this comes after it
+
+    var FirstTick = true;
+
+    var sourceWindow = document.getElementById("sourceWindow");
+    var DemoObj = document.getElementById("demo"); 
+    var inputCheckBox_ShowHitBoxes = document.getElementById("inputCheckBox_ShowHitBoxes"); 
+    var inputCheckBox_ShowSpriteBoxes = document.getElementById("inputCheckBox_ShowSpriteBoxes"); 
+    var inputCheckBox_ShowSpriteCenters = document.getElementById("inputCheckBox_ShowSpriteCenters");
+    var gameplayLayer = null;
+
+     var LastCoreData = null;
+
+    //Mainloop.js
+    Core_Init(window, document, sourceWindow, "Core/", (coreData, DeltaTime) => {
+        LastCoreData = coreData;
+
+        if(FirstTick){
+            FirstTick = false;
+            lstGameScripts = ["Game/GameObjects/GameObject.js"
+                                , "Game/GameObjects/SimpleBullet.js"
+                                , "Game/GameObjects/SimpleTurret.js"
+                                , "Game/GameObjects/PlayerObject.js"
+                                , "Game/Map/MapTiles.js"
+                                , "Game/Map/MapSprites.js"
+                                , "Game/Map/Level.js"
+                                , "Game/GameAssetLibrary.js"
+                                , "Game/GameplayLayer.js"];
+
+            Core_LoadScripts(coreData, lstGameScripts, () =>{
+                coreData.AssetLibrary = new GameAssetLibrary();
+
+                gameplayLayer = new GameplayLayer();
+                coreData.LayerStack.AddLayer(gameplayLayer, 1);
+            });
+        }
+        //enforce aspect ratio (16/9)
+        var style = coreData.WindowObj.getComputedStyle(sourceWindow, null);
+        var Num_Width = parseInt(style.width);
+        sourceWindow.style.height = (Num_Width * (9/16)) + "px";
+        //TODO check to see if we have enough Vertical screen space
+
+        //scale up/down screen based on size
+        var Scale = 1;
+        if(Num_Width != 0){
+            Scale = Num_Width / 20;
+        }
+        coreData.LayerStack.GlobalTransform.SetToScale(Scale, Scale);
+
+        //tick layer stack
+        coreData.LayerStack.Tick(coreData, DeltaTime);
+        coreData.LayerStack.Draw(coreData);
+
+        DemoObj.innerHTML = DeltaTime + "<br>";
+    });
+    //show hitboxes
+    inputCheckBox_ShowHitBoxes.onclick = () => {
+        if(LastCoreData == null){
+            return;
+        }
+        LastCoreData.DrawHitBoxes = inputCheckBox_ShowHitBoxes.checked;
+    }
+    //show sprite boxes
+    inputCheckBox_ShowSpriteBoxes.onclick = () => {
+        if(LastCoreData == null){
+            return;
+        }
+        LastCoreData.DrawSpriteBoxes = inputCheckBox_ShowSpriteBoxes.checked;
+    }
+    //centers
+    inputCheckBox_ShowSpriteCenters.onclick = () => {
+        if(LastCoreData == null){
+            return;
+        }
+        LastCoreData.DrawSpriteCenters = inputCheckBox_ShowSpriteCenters.checked;
+    }
+
+</script>
+</body>
+</html>

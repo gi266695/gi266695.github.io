@@ -1,0 +1,49 @@
+{
+	"Animations": [{
+		"Name": "Idle",
+		"Steps": [{
+			"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+			"MatrixAnimations": [{
+				"Rotate": {
+					"b": 0.6,
+					"c": 1		
+				}
+			},
+			{
+				"MoveX": {
+					"c": 60
+				}
+			}]
+		},
+		{
+			"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+			"MatrixAnimations": [{
+				"Rotate": {
+					"b": 3,
+					"c": 4
+					
+				}
+			},
+			{
+				"MoveX": {
+					"c": 40
+				}
+			}]
+		},
+		{
+			"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+			"MatrixAnimations": [{
+				"Rotate": {
+					"b": 0.5,
+					"c": 0
+					
+				}
+			},
+			{
+				"MoveX": {
+					"c": 70
+				}
+			}]
+		}]
+	}]
+}

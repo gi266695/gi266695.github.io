@@ -1,0 +1,21 @@
+{
+	"TileSets":[
+		"Data/Structures/Splash/TestTileSet_tileset.json"
+	],
+	"Width": 10,
+	"Height": 10,
+	"Tiles":[
+		["Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall"],
+		["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+		["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+		["Wall","Floor","Floor","Floor","Wall","Floor","Floor","Floor","Floor","Wall"],
+		["Wall","Floor","Floor","Wall","Wall","Wall","Floor","Floor","Floor","Wall"],
+		["Wall","Floor","Floor","Floor","Wall","Floor","Floor","Floor","Floor","Wall"],
+		["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+		["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+		["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+		["Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall"]
+
+	]
+
+}

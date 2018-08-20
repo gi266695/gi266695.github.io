@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="Core/Mainloop.js"></script>
+</head>
+<body>
+<div>
+    <h1>Sprite Viewer</h1>
+    <p id="demo"></p>
+    <p>sprite path "_sprite.json"</p>
+    <input id="textInput_spritePath" type="text", size="50">
+    <br>
+    <button id="buttonInput_loadSprite" type="button">Load Sprite</button>
+    <input id="inputCheckBox_ShowHitBoxes" type="checkbox">Show Hitboxes</input>
+    <input id="inputCheckBox_ShowSpriteBoxes" type="checkbox">Show SpriteBoxes</input>
+    <input id="inputCheckBox_ShowSpriteCenters" type="checkbox">Show Sprite Centers</input>
+</div>
+<div id="sourceWindow" style= "background:black;"></div>
+<div id="div_Description"></div>
+<script>
+    var FirstTick = true;
+
+    var sourceWindow = document.getElementById("sourceWindow");
+    var DemoObj = document.getElementById("demo");
+    var textInput_spritePath = document.getElementById("textInput_spritePath");
+    var buttonInput_loadSprite = document.getElementById("buttonInput_loadSprite"); 
+    var inputCheckBox_ShowHitBoxes = document.getElementById("inputCheckBox_ShowHitBoxes"); 
+    var inputCheckBox_ShowSpriteBoxes = document.getElementById("inputCheckBox_ShowSpriteBoxes"); 
+    var inputCheckBox_ShowSpriteCenters = document.getElementById("inputCheckBox_ShowSpriteCenters");
+    var div_Description = document.getElementById("div_Description"); 
+
+    var LastCoreData = null;
+    var Layer = null;
+    var LastWeelPosition = 0;
+
+    var ShownSprite = null;
+
+    var Bool_Loading = false;
+
+    //load/tick/draw
+    Core_Init(window, document, sourceWindow, "Core/", (coreData, DeltaTime) => {
+        LastCoreData = coreData;
+
+        if(FirstTick){
+            Layer = new GameLayer();
+            coreData.LayerStack.AddLayer(Layer, 1);
+            FirstTick = false;
+        }
+
+        //enforce aspect ratio (16/9)
+        var style = coreData.WindowObj.getComputedStyle(sourceWindow, null);
+        var Num_Width = parseInt(style.width);
+        sourceWindow.style.height = (Num_Width * (9/16)) + "px";
+        //TODO check to see if we have enough Vertical screen space
+
+        //scale up/down screen based on size
+        var Scale = 1;
+        if(Num_Width != 0){
+            Scale = Num_Width / ((coreData.InputManager.Num_WheelPosition * 0.01) + 20);
+        }
+        if(Scale < 0){
+            Scale = 0;
+        }
+        coreData.LayerStack.GlobalTransform.SetToScale(Scale, Scale);
+
+        Layer.SetCamera(new Vector2D(0,0), 1);
+
+        //tick layer stack
+        coreData.LayerStack.Tick(coreData, DeltaTime);
+        coreData.LayerStack.Draw(coreData);
+
+        DemoObj.innerHTML = DeltaTime + "<br>";
+    });
+
+    //load/reload sprite
+    buttonInput_loadSprite.onclick = () =>{
+        if(LastCoreData != null 
+                && Layer != null
+                && textInput_spritePath != null
+                && div_Description != null
+                && !Bool_Loading){
+            
+            Bool_Loading = true;
+
+            buttonInput_loadSprite.innerHTML = "Loading";
+
+            if(ShownSprite != null){
+                Layer.RemoveInstance(ShownSprite);
+                ShownSprite = null;
+            }
+            var Str_Path = textInput_spritePath.value;
+
+            LastCoreData.AssetLibrary.Clear();
+            LastCoreData.AssetLibrary.LoadAssets([Str_Path], () => { 
+                ShownSprite = LastCoreData.AssetLibrary.SpriteInstance_GetSpriteInstance(Str_Path);
+                if(ShownSprite != null){
+                    Layer.AddInstance(ShownSprite, 1);
+                    
+                    div_Description.innerHTML = '';
+                    Recusive_BuildSpriteTree(div_Description, ShownSprite);
+                }
+
+                buttonInput_loadSprite.innerHTML  = "Load Sprite";
+                Bool_Loading = false;
+            });
+        }
+        
+        //show hitboxes
+        inputCheckBox_ShowHitBoxes.onclick = () => {
+            if(LastCoreData == null){
+                return;
+            }
+            LastCoreData.DrawHitBoxes = inputCheckBox_ShowHitBoxes.checked;
+        }
+
+        //show sprite boxes
+        inputCheckBox_ShowSpriteBoxes.onclick = () => {
+            if(LastCoreData == null){
+                return;
+            }
+            LastCoreData.DrawSpriteBoxes = inputCheckBox_ShowSpriteBoxes.checked;
+        }
+
+        //centers
+        inputCheckBox_ShowSpriteCenters.onclick = () => {
+            if(LastCoreData == null){
+                return;
+            }
+            LastCoreData.DrawSpriteCenters = inputCheckBox_ShowSpriteCenters.checked;
+        }
+        
+        function Recusive_BuildSpriteTree(Div_Root, Sprite_Root){
+            if(Div_Root == null || Sprite_Root == null){
+                return;
+            }
+            //information
+            if(Sprite_Root.SpriteAsset != null){
+                var p_info = document.createElement('p');
+                p_info.innerHTML = 'Name:';
+                p_info.innerHTML += Sprite_Root.SpriteAsset.Name != null ? Sprite_Root.SpriteAsset.Name : "NULL";
+                p_info.innerHTML += '<br>';
+                
+                p_info.innerHTML += "HitBoxes:<br>";
+
+                for(var key in Sprite_Root.SpriteAsset.dctHitBoxTypes){
+                    p_info.innerHTML += ' * '
+                    p_info.innerHTML += key;
+                    p_info.innerHTML += '<br>';
+                }
+                Div_Root.appendChild(p_info);
+            }
+            //tranform options
+            var lable_lable = document.createElement('lable');
+            lable_lable.innerHTML = 'Scale: '
+            Div_Root.appendChild(lable_lable);
+            
+            var input_Scale = document.createElement('input');
+            input_Scale.type = "text";
+            input_Scale.value = 1;
+            Div_Root.appendChild(input_Scale);
+
+            Div_Root.appendChild(document.createElement('br'));
+
+            lable_lable = document.createElement('lable');
+            lable_lable.innerHTML = 'Rotate: '
+            Div_Root.appendChild(lable_lable);
+            
+            var input_Rotate = document.createElement('input');
+            input_Rotate.type = 'text';
+            input_Rotate.value = 0;
+            Div_Root.appendChild(input_Rotate);
+            
+            Div_Root.appendChild(document.createElement('br'));
+
+            var Button_Transform = document.createElement('button');
+            Button_Transform.innerHTML = 'Set Transform';
+            Button_Transform.onclick = () => {
+                if(Sprite_Root.SpriteAsset == null){
+                    return;
+                }
+                var Num_Scale = parseInt(input_Scale.value);
+                if(isNaN(Num_Scale)){
+                    Num_Scale = 1;
+                }
+                var Num_Rotation = parseInt(input_Rotate.value);
+                if(isNaN(Num_Rotation)){
+                    Num_Rotation = 0;
+                }
+                Num_Rotation = (Num_Rotation/180) * Math.PI;
+                
+                Sprite_Root.LocalTransform.Assign(Sprite_Root.SpriteAsset.Transform);
+                Sprite_Root.LocalTransform.ScaleSelf(Num_Scale, Num_Scale);
+                Sprite_Root.LocalTransform.RotateSelf(Num_Rotation);
+            }
+            Div_Root.appendChild(Button_Transform);
+
+            Div_Root.appendChild(document.createElement('br'));
+
+            //draw?
+            lable_lable = document.createElement('lable');
+            lable_lable.innerHTML = 'Draw: '
+            Div_Root.appendChild(lable_lable);
+
+            var input_Draw = document.createElement('input');
+            input_Draw.type = 'checkbox';
+            input_Draw.checked = true;
+            input_Draw.onclick = () => {
+                Sprite_Root.LocalAlpha = input_Draw.checked ? 1 : 0;
+            };
+            Div_Root.appendChild(input_Draw);
+
+            Div_Root.appendChild(document.createElement('br'));
+
+            //animation options
+            lable_lable = document.createElement('lable');
+            lable_lable.innerHTML = 'Animation: '
+            Div_Root.appendChild(lable_lable);
+
+            Button_RestartAnim = document.createElement('button');
+            Button_RestartAnim.innerHTML = 'Restart';
+            Button_RestartAnim.onclick = () => {
+                Sprite_Root.SetAnimationPercent(0);
+            };
+            Div_Root.appendChild(Button_RestartAnim);
+
+            if(Sprite_Root.SpriteAsset != null && Sprite_Root.SpriteAsset.dctAnimations != null){
+                var Select_Animation = document.createElement('select');
+                Select_Animation.value = 0;
+                Div_Root.appendChild(Select_Animation);
+                
+                var Num_default = -1;
+                var Num_loop = 0;
+                for(var key in Sprite_Root.SpriteAsset.dctAnimations){
+                    var option_Animation = document.createElement('option');
+                    option_Animation.textContent = key;
+                    option_Animation.value = key;
+                    Select_Animation.appendChild(option_Animation);
+                    
+                    if(key == 'idle'){
+                        Num_default = Num_loop; 
+                    }
+                    Num_loop++;
+                }
+                if(Num_default >= 0){
+                    Select_Animation.selectedIndex = Num_default;
+                }
+                Select_Animation.onchange = () => {
+                    if(Sprite_Root.SpriteAsset != null){
+                        var Num_loop = 0;
+                        for(var key in Sprite_Root.SpriteAsset.dctAnimations){
+                            if(Num_loop == Select_Animation.selectedIndex){
+                                Sprite_Root.SetAnimation(key);
+                            }
+                            Num_loop++;
+                        }
+                    }
+                };
+
+                Div_Root.appendChild(document.createElement('br'));
+
+                //sub sprites
+                if(Sprite_Root.lst_Sprites.length > 0){
+                    lable_lable = document.createElement('lable');
+                    lable_lable.innerHTML = 'children:'
+                    Div_Root.appendChild(lable_lable);
+
+                    var ul_List = document.createElement('ul');
+                    Div_Root.appendChild(ul_List);
+                    
+                    Sprite_Root.lst_Sprites.forEach(childSprite => {
+                        var li_childRoot = document.createElement('li');
+                        ul_List.appendChild(li_childRoot);
+                        Recusive_BuildSpriteTree(li_childRoot, childSprite);
+
+                    });
+                }
+
+            }
+        }
+    };
+</script>
+</body>
+</html>

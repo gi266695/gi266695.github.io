@@ -1,0 +1,33 @@
+{
+	"Steps": [{
+		"SpiteSheets": [{
+			"ImagePath": "bullet.png",
+			"SecondsPerFrame": 0.09,
+			"Width": 50,
+			"Height": 50,
+			"CenterX": 0,
+			"CenterY": 0,
+			"Rows": 1,
+			"Columns": 4,
+			"Remainder": 0,
+			"Loop": true
+		},
+		{
+			"ImagePath": "bulletOverlay.png",
+			"SecondsPerFrame": 0.09,
+			"Width": 50,
+			"Height": 50,
+			"CenterX": 0,
+			"CenterY": 0,
+			"Rows": 1,
+			"Columns": 4,
+			"Remainder": 0,
+			"Loop": true
+		}],
+		"MatrixAnimations": [{
+			"Rotate": {
+				"b": -3.3
+			}		
+		}]
+	}]
+}

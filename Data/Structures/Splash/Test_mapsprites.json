@@ -1,0 +1,16 @@
+{
+	"Defs": [{
+			"Name": "sparcle",
+			"Height": 2,
+			"Sprite": "Data/Structures/Splash/TestStar_sprite.json"
+		},
+		{
+			"Name": "Block",
+			"Height": 1,
+			"Sprite": "Data/Structures/Splash/TestWall_sprite.json",
+			"BlocksMovementID": "map",
+			"BlocksShotsID": "map",
+            "BlocksVisionID": "map"
+		}
+	]
+}

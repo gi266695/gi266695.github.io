@@ -1,0 +1,89 @@
+{
+	"ScaleX": 0.015,
+	"ScaleY": 0.015,
+	"Animations": [{
+		"Name": "Idle",
+		"Steps": [{
+			"SpiteSheets": [{
+				"ImagePath": "bullet.png",
+				"SecondsPerFrame": 0.09,
+				"Width": 40,
+				"Height": 40,
+				"CenterX": 0,
+				"CenterY": 0,
+				"Rows": 1,
+				"Columns": 4,
+				"Remainder": 0,
+				"Loop": true
+			},
+			{
+				"ImagePath": "bulletOverlay.png",
+				"SecondsPerFrame": 0.09,
+				"Width": 40,
+				"Height": 40,
+				"CenterX": 0,
+				"CenterY": 0,
+				"Rows": 1,
+				"Columns": 4,
+				"Remainder": 0,
+				"Loop": true
+			}],
+			"MatrixAnimations": [{
+				"Rotate": {
+					"b": 0.3
+				}
+			},{
+				"MoveX": {
+					"c": -2
+				},
+				"MoveY": {
+					"c": -3
+				}
+			}]
+		}]
+	},
+	{
+		"Name": "Explode",
+		"Steps": [{
+			"SpiteSheets": [{
+				"ImagePath": "bulletHit.png",
+				"SecondsPerFrame": 0.066,
+				"Width": 500,
+				"Height": 500,
+				"CenterX": 0,
+				"CenterY": 0,
+				"Rows": 3,
+				"Columns": 4,
+				"Remainder": 3,
+				"Loop": false
+			},
+			{
+				"ImagePath": "bulletHitOverlay.png",
+				"SecondsPerFrame": 0.066,
+				"Width": 500,
+				"Height": 500,
+				"CenterX": 0,
+				"CenterY": 0,
+				"Rows": 3,
+				"Columns": 4,
+				"Remainder": 3,
+				"Loop": false
+			}]
+		}]
+	}],
+	"HitBoxes": [{
+		"Name": "IdleHit",
+		"Boxes": [{
+			"Type": "circle",
+			"Radius": 6,
+			"Points": 7
+		}]
+	},{
+		"Name": "ExplodeHit",
+		"Boxes": [{
+			"Type": "circle",
+			"Radius": 100,
+			"Points": 12
+		}]
+	}]
+}

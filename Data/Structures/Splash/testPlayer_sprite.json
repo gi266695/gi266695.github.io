@@ -1,0 +1,114 @@
+{
+	"ScaleX": 0.017,
+	"ScaleY": 0.017,
+	"Animations": [{
+		"Name": "Idle",
+		"Steps": [{
+			"SpiteSheets": [{
+				"ImagePath": "turretIdle.png",
+				"SecondsPerFrame": 0.20,
+				"Width": 50,
+				"Height": 50,
+				"CenterX": 0,
+				"CenterY": 0,
+				"Rows": 1,
+				"Columns": 8,
+				"Remainder": 0,
+				"Loop": true
+			},
+			{
+				"ImagePath": "turretIdleOverlay.png",
+				"SecondsPerFrame": 0.20,
+				"Width": 50,
+				"Height": 50,
+				"CenterX": 0,
+				"CenterY": 0,
+				"Rows": 1,
+				"Columns": 8,
+				"Remainder": 0,
+				"Loop": true
+			}]
+		}]
+	},
+	{
+		"Name": "Shoot",
+		"Steps": [{
+			"SpiteSheets": [{
+				"ImagePath": "turretShoot.png",
+				"SecondsPerFrame": 0.10,
+				"Width": 53.5,
+				"Height": 50,
+				"CenterX": 1.75,
+				"CenterY": 0,
+				"Rows": 1,
+				"Columns": 13,
+				"Remainder": 0,
+				"Loop": false
+			},
+			{
+				"ImagePath": "turretShootOverlay.png",
+				"SecondsPerFrame": 0.10,
+				"Width": 53.5,
+				"Height": 50,
+				"CenterX": 1.75,
+				"CenterY": 0,
+				"Rows": 1,
+				"Columns": 13,
+				"Remainder": 0,
+				"Loop": false
+			}]
+		}]
+	}],
+	"HitBoxes": [{
+		"Name": "Map",
+		"Boxes": [{
+			"Points": [{
+				"x": 21,
+				"y": 10
+			},
+			{
+				"x": 21,
+				"y": -10
+			},
+			{
+				"x": 7,
+				"y": -10
+			},
+			{
+				"x": 7,
+				"y": 10
+			}]
+		},
+		{
+			"Points": [{
+				"x": 7,
+				"y": 19
+			},
+			{
+				"x": 7,
+				"y": -19
+			},
+			{
+				"x": -8,
+				"y": -19
+			},
+			{
+				"x": -19,
+				"y": -6
+			},
+			{
+				"x": -19,
+				"y": 6
+			},
+			{
+				"x": -8,
+				"y": 19
+			}]
+		}]
+	}],
+	"Sprites": [{
+		"Name": "BulletSpawn",
+		"CenterX": 23,
+		"CenterY": 0
+	}]
+}
