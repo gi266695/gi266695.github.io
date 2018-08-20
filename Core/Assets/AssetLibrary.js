@@ -276,7 +276,7 @@ class AssetLibrary {
             return;
         }
         if(func_GetAsset(defPath) != null){
-            func_IsLoaded(defPath, false);  
+            func_IsLoaded(defPath, true);  
             return;
         }
         var NewAsset = func_NewAsset();
