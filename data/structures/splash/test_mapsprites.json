@@ -10,7 +10,7 @@
 			"Sprite": "Data/Structures/Splash/TestWall_sprite.json",
 			"BlocksMovementID": "map",
 			"BlocksShotsID": "map",
-            "BlocksVisionID": "map"
+            "BlocksVisionID": null
 		}
 	]
 }

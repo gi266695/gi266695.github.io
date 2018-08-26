@@ -24,6 +24,30 @@
 			"Center": {"x":-2, "y":-3},
 			"Scale": 0.015,
 			"Rotation": 0.78539
+		},
+		{
+			"Name": "block",
+			"Center": {"x": 4, "y": -3.5},
+			"Scale": 0.015,
+			"Rotation": 0.78539
+		},
+		{
+			"Name": "block",
+			"Center": {"x": 4, "y": -1.5},
+			"Scale": 0.015,
+			"Rotation": 0.78539
+		},
+		{
+			"Name": "block",
+			"Center": {"x": 4, "y": 0.5},
+			"Scale": 0.015,
+			"Rotation": 0.78539
+		},
+		{
+			"Name": "block",
+			"Center": {"x": 4, "y": 2.5},
+			"Scale": 0.015,
+			"Rotation": 0.78539
 		}
 	],
 	"GameObject_Spawns":[
@@ -72,6 +96,51 @@
 			"Name":"simpleTurret",
 			"Center": {"x": 12, "y": 2},
 			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": -7, "y": 17},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": -7, "y": 19},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": -7, "y": 21},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": -5, "y": 17},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": -5, "y": 19},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": -5, "y": 21},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": -3, "y": 17},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": -3, "y": 19},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": -3, "y": 21},
+			"ClockWise": true
 		}
 	],
 	"Rooms":[
@@ -89,32 +158,13 @@
 				["Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall"],
 				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor"],
 				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor"],
-				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
 				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor"],
 				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor"],
-				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor"],
 				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor"],
 				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor"],
 				["Wall","Floor","Floor","Floor","Wall","Wall","Wall","Wall","Wall","Wall"]
-			]
-		},
-		{
-			"TileSets":[
-				"Data/Structures/Splash/TestTileSet_tileset.json"
-			],
-			"Width": 9,
-			"Height": 5,
-			"UpperLeft":{
-				"x": -5,
-				"y": 5
-			},
-			"Tiles":[
-				["Wall","Floor","Floor","Floor","Wall","Floor","Floor","Floor","Wall"],
-				["Wall","Floor","Floor","Floor","Wall","Floor","Wall","Floor","Wall"],
-				["Wall","Floor","Floor","Floor","Wall","Floor","Wall","Floor","Wall"],
-				["Wall","Floor","Floor","Floor","Floor","Floor","Wall","Floor","Wall"],
-				["Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall"]
-
 			]
 		},
 		{
@@ -137,6 +187,69 @@
 				["Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
 				["Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
 				["Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall"]
+			]
+		},
+		{
+			"TileSets":[
+				"Data/Structures/Splash/TestTileSet_tileset.json"
+			],
+			"Width": 9,
+			"Height": 5,
+			"UpperLeft":{
+				"x": -5,
+				"y": 5
+			},
+			"Tiles":[
+				["Wall","Floor","Floor","Floor","Wall","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Wall","Floor","Wall","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Wall","Floor","Wall","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Wall","Floor","Wall"],
+				["Wall","Wall","Wall","Wall","Wall","Wall","Wall","Floor","Wall"]
+
+			]
+		},
+		{
+			"TileSets":[
+				"Data/Structures/Splash/TestTileSet_tileset.json"
+			],
+			"Width": 3,
+			"Height": 8,
+			"UpperLeft":{
+				"x": 1,
+				"y": 10
+			},
+			"Tiles":[
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Floor","Floor","Wall"],
+				["Wall","Wall","Wall"]
+			]
+		},
+		{
+			"TileSets":[
+				"Data/Structures/Splash/TestTileSet_tileset.json"
+			],
+			"Width": 10,
+			"Height": 10,
+			"UpperLeft":{
+				"x": -9,
+				"y": 15
+			},
+			"Tiles":[
+				["Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
 				["Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall"]
 			]
 		}
