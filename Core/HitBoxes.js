@@ -7,6 +7,7 @@ class PolygonalHitBox {
         this.LstVec_Points = [];
         this.Vector_Center = new Vector2D();
         this.Vector_Size = new Vector2D();
+        this.Bool_IsUnrotatedBox = false;    //If we know we are just a box with no rotation we con optimize some things
     }
     /**
      * @param {PolygonalHitBox} other 
@@ -59,6 +60,8 @@ class PolygonalHitBox {
     Init(){
         this.Vector_Center.SetToZero();
         this.Vector_Size.SetToZero();
+        this.Bool_IsUnrotatedBox = false;
+
         var MinX = null;
         var MaxX = null;
         var MinY = null;
@@ -75,6 +78,36 @@ class PolygonalHitBox {
 
             this.Vector_Center.x = MinX + (this.Vector_Size.x / 2);
             this.Vector_Center.y = MinY + (this.Vector_Size.y / 2);
+        }
+        //spcial case is this an unrotated rectangle
+        if(this.LstVec_Points.length == 4){
+            var Bool_MinX_MinY = false;
+            var Bool_MinX_MaxY = false;
+            var Bool_MaxX_MinY = false;
+            var Bool_MaxX_MaxY = false;
+
+            this.LstVec_Points.forEach(element => {
+                if(element.x == MinX){
+                    if(element.y == MinY){
+                        Bool_MinX_MinY = true;
+                    }
+                    else if(element.y == MaxY){
+                        Bool_MinX_MaxY = true;
+                    }
+                }
+                else if(element.x == MaxX){
+                    if(element.y == MinY){
+                        Bool_MaxX_MinY = true;
+                    }
+                    else if(element.y == MaxY){
+                        Bool_MaxX_MaxY = true;
+                    }
+                }
+            });
+            this.Bool_IsUnrotatedBox = (Bool_MinX_MinY 
+                                        && Bool_MinX_MaxY
+                                        && Bool_MaxX_MinY
+                                        && Bool_MaxX_MaxY);
         }
     }
     Num_GetBoundsCenterX(){
@@ -107,6 +140,10 @@ class PolygonalHitBox {
                 || point.y > (this.Num_GetBoundsCenterY() + (this.Num_GetBoundsSizeY() / 2))){
             
             return false;
+        }
+        //if this is a simple box we are done
+        if(this.Bool_IsUnrotatedBox){
+            return true;
         }
 
         //is inside all lines
@@ -219,22 +256,17 @@ class PolygonalHitBox {
             var temp = new Matrix3X3();
             temp.SetContextTransform(context);
         }
-        for(var loop = 0; loop < this.LstVec_Points.length; loop++){
-            var a1 = this.LstVec_Points[loop];
-            var a2 = null;
-            if(loop + 1 < this.LstVec_Points.length){
-                a2 = this.LstVec_Points[loop + 1];
-            }
-            else{
-                a2 = this.LstVec_Points[0];
-            }
-            context.beginPath();
-
-            context.moveTo(a1.x, a1.y);
-            context.lineTo(a2.x, a2.y);
-
+        if(this.LstVec_Points.length > 1){
             context.strokeStyle = Color;
             context.lineWidth = LineWidth;
+
+            context.beginPath();
+            context.moveTo(this.LstVec_Points[0].x, this.LstVec_Points[0].y);
+
+            for(var loop = 1; loop < this.LstVec_Points.length; loop++){
+                context.lineTo(this.LstVec_Points[loop].x, this.LstVec_Points[loop].y);
+            }
+            context.lineTo(this.LstVec_Points[0].x, this.LstVec_Points[0].y);
             context.stroke();
         }
         context.restore();
@@ -322,6 +354,28 @@ class PolygonalHitBox {
     }
 
 }
+/**
+ * @param {Vector2D} Vector_Start 
+ * @param {Vector2D} Vector_End 
+ * @param {array} Lst_Boxes 
+ */
+function Bool_IsLineInAnyBoxes(Vector_Start, Vector_End, Lst_Boxes){
+    if(Vector_Start == null 
+            || Vector_End == null
+            || !Array.isArray(Lst_Boxes)){
+        return false;
+    }
+    for(var loop = 0; loop < Lst_Boxes.length; loop++){
+        if(Lst_Boxes[loop] != null && Lst_Boxes[loop].Bool_DoesLineIntersect(Vector_Start, Vector_End)){
+            return true;
+        }
+    }
+    return false;
+}
+/**
+ * @param {array} Lst_Boxes1 
+ * @param {array} Lst_Boxes2 
+ */
 function Bool_AreAnyColliding(Lst_Boxes1, Lst_Boxes2){
     if(!Array.isArray(Lst_Boxes1) || !Array.isArray(Lst_Boxes2)){
         return false;
@@ -360,6 +414,13 @@ function Bool_GetCollisionData(Box1, Box2, Vector_1_Normal = null, Vector_2_Norm
     if(Math.abs(Box1.Num_GetBoundsCenterX() - Box2.Num_GetBoundsCenterX()) > (Box1.Num_GetBoundsSizeX() + Box2.Num_GetBoundsSizeX() / 2)
             || Math.abs(Box1.Num_GetBoundsCenterY() - Box2.Num_GetBoundsCenterY()) > (Box1.Num_GetBoundsSizeY() + Box2.Num_GetBoundsSizeY() / 2)){
         return false
+    }
+    //if both boxes are simple and we don't need to find any
+    if(Box1.Bool_IsUnrotatedBox
+            && Box2.Bool_IsUnrotatedBox
+            && Vector_1_Normal == null
+            && Vector_2_Normal == null){
+        return true;
     }
 
     //check for intersetions

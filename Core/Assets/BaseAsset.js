@@ -14,9 +14,6 @@ class BaseAsset{
         if(String_Path == null){
             Func_OnComplete(String_Path, null);
         }
-        //hacky test is hacky
-        //Func_OnComplete(String_Path, null);
-        //return;
 
         var xhttp = new XMLHttpRequest();
         try{

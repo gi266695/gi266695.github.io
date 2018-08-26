@@ -452,6 +452,9 @@ class RoomInstance {
         this.RoomDef = null;
         this.Lst_Tiles = [];
         this.Layer = null;
+
+        //Note these game objectsw have nothing to do with the ones swpawned by the level
+        this.Lst_GameObjectInRoom = null;
     }
     /**
      * @param {GameplayLayer} Layer_Target 
@@ -545,6 +548,165 @@ class RoomInstance {
                         && Tile.HitBox != null){
 
                     Tile.HitBox.Draw(coreData, ParentTranform, "#ff00ff");
+                }
+            }
+        }
+    }
+}
+/**
+ * Func_Break is passed a MapTileInstance, if it returns true the loop will break
+ * @param {array} Lst_Levels 
+ * @param {Vector2D} Vector_Start 
+ * @param {Vector2D} Vector_End
+ * @param {boolean} Bool_CollisionsOnly
+ * @param {funtion} Func_Break 
+ */
+function forEach_TileOnLine(Lst_Levels, Vector_Start, Vector_End, Bool_CollisionsOnly, Func_Break){
+    if(!Array.isArray(Lst_Levels)
+            || Vector_Start == null
+            || Vector_End == null
+            || Func_Break == null){
+        return;
+    }
+    //get bounds
+    var MinX = Math.min(Vector_Start.x, Vector_End.x);
+    var MinY = Math.min(Vector_Start.y, Vector_End.y);
+    var MaxX = Math.max(Vector_Start.x, Vector_End.x);
+    var MaxY = Math.max(Vector_Start.y, Vector_End.y);
+    
+    MinX = Math.round(MinX);
+    MinY = Math.round(MinY);
+    MaxX = Math.round(MaxX);
+    MaxY = Math.round(MaxY);
+
+    if(MinX > MaxX || MinY > MaxY){
+        return;
+    }
+
+    var temp = new Vector2D();
+    for(var loopX = MinX; loopX <= MaxX; ++loopX){
+        for(var loopY = MinY; loopY <= MaxY; ++loopY){
+            temp.x = loopX;
+            temp.y = loopY;
+            for(var loopLevel = 0; loopLevel < Lst_Levels.length; ++loopLevel){
+                if(Lst_Levels[loopLevel] == null){
+                    continue;
+                }
+                var Tile = Lst_Levels[loopLevel].Tile_GetTile(temp);
+                if(Tile == null || Tile.HitBox == null){
+                    continue;
+                }
+                if(Bool_CollisionsOnly){
+                    if(!Tile.HitBox.Bool_IsLineInBox(Vector_Start, Vector_End)){
+                        continue;
+                    }
+                }
+                if(Func_Break(Tile)){
+                    return;
+                }
+            }
+        }
+    }
+}
+/**
+ * Func_Break is passed a MapTileInstance, if it returns true the loop will break
+ * @param {array} Lst_Levels 
+ * @param {array} Lst_HitBoxes 
+ * @param {function} Func_Break 
+ * @param {boolean} Bool_IncludeEdges
+ * @param {boolean} Bool_CollisionsOnly
+ */
+function forEach_TileInBounds(Lst_Levels, Lst_HitBoxes, Bool_IncludeEdges, Bool_CollisionsOnly, Func_Break){
+    if(!Array.isArray(Lst_Levels)
+            || Lst_Levels.length <= 0
+            || !Array.isArray(Lst_HitBoxes)
+            || Lst_HitBoxes.length <= 0
+            || Func_Break == null){
+        
+        return;
+    }
+    //get bounds
+    var MinX = null;
+    var MinY = null;
+    var MaxX = null;
+    var MaxY = null;
+
+    Lst_HitBoxes.forEach(element => {
+        var temp = element.Vector_Center.x - (element.Vector_Size.x / 2);
+        if(MinX == null){
+            MinX = temp;
+        }
+        else {
+            MinX = Math.min(MinX, temp);
+        }
+        temp = element.Vector_Center.y - (element.Vector_Size.y / 2);
+        if(MinY == null){
+            MinY = temp;
+        }
+        else {
+            MinY = Math.min(MinY, temp);
+        }
+        temp = element.Vector_Center.x + (element.Vector_Size.x / 2);
+        if(MaxX == null){
+            MaxX = temp;
+        }
+        else {
+            MaxX = Math.max(MaxX, temp);
+        }
+        temp = element.Vector_Center.y + (element.Vector_Size.y / 2);
+        if(MaxY == null){
+            MaxY = temp;
+        }
+        else {
+            MaxY = Math.max(MaxY, temp);
+        }
+    });
+    if(MinX == null || MinY == null || MaxX == null || MaxY == null){
+        return;
+    }
+    MinX = Math.round(MinX);
+    MinY = Math.round(MinY);
+    MaxX = Math.round(MaxX);
+    MaxY = Math.round(MaxY);
+
+    if(Bool_IncludeEdges){
+        MinX -= 1;
+        MinY -= 1;
+        MaxX += 1;
+        MaxY += 1;
+    }
+    if(MinX > MaxX || MinY > MaxY){
+        return;
+    }
+    var temp = new Vector2D();
+    for(var loopX = MinX; loopX <= MaxX; ++loopX){
+        for(var loopY = MinY; loopY <= MaxY; ++loopY){
+            temp.x = loopX;
+            temp.y = loopY;
+            for(var loopLevel = 0; loopLevel < Lst_Levels.length; ++loopLevel){
+                if(Lst_Levels[loopLevel] == null){
+                    continue;
+                }
+                var Tile = Lst_Levels[loopLevel].Tile_GetTile(temp);
+                if(Tile == null || Tile.TileDef == null){
+                    continue;
+                }
+                if(Bool_CollisionsOnly){
+                    if(Tile.HitBox == null){
+                        continue;
+                    }
+                    var IsColliding = false;
+                    for(var LoopCollision = 0; !IsColliding && LoopCollision < Lst_HitBoxes.length; ++LoopCollision){
+                        if(Bool_GetCollisionData(Lst_HitBoxes[LoopCollision], Tile.HitBox)){
+                            IsColliding = true;
+                        }
+                    }
+                    if(!IsColliding){
+                        continue;
+                    }
+                }
+                if(Func_Break(Tile)){
+                    return;
                 }
             }
         }
@@ -793,48 +955,80 @@ function Bool_HasLineOfSite(Lst_Levels, Vector_PointOfSight, Lst_Boxes, Lst_Game
     for(var loopBox = 0; loopBox < Lst_Boxes.length; loopBox++){
         var EndPoint = Lst_Boxes[loopBox].Vector_Center;
         var Bool_FoundCollision = false;
-        forEach_TileOnLine(Lst_Levels, Vector_PointOfSight, EndPoint, (Tile) => {
-            //check tile
-            if(Tile.TileDef != null && Tile.TileDef.Bool_BlocksVision){
-                Bool_FoundCollision = true;
-                return true;
-            }
-            //check map sprites
+        forEach_TileOnLine(Lst_Levels, Vector_PointOfSight, EndPoint, false, (Tile) => {
+            //get sprite boxes
+            LstSprites = null;
             for(var loopObjBox = 0; loopObjBox < Tile.LstBoxes_BlocksVision.length; loopObjBox++){
                 var CurrentBox = Tile.LstBoxes_BlocksVision[loopObjBox];
                 if(CheckedHitBoxes == null || !CheckedHitBoxes.includes(CurrentBox)){
-                    if(CurrentBox.Bool_IsLineInBox(Vector_PointOfSight, EndPoint)){
-                        Bool_FoundCollision = true;
-                        return true;
+                    if(LstSprites == null){
+                        LstSprites = [];
                     }
-                    else{
-                        if(CheckedHitBoxes == null){
-                            CheckedHitBoxes = [];
-                        }
-                        CheckedHitBoxes.push(CurrentBox);
-                    }
+                    LstSprites.push(CurrentBox);
                 }
             }
-            //check game objects
+            //get game objects
+            Lst_GameObjs = null;
             for(var loopGameObj = 0; loopGameObj < Tile.LstObjects_GameObjects.length; loopGameObj++){
                 var CurrentGameObject = Tile.LstObjects_GameObjects[loopGameObj];
                 if(CurrentGameObject.Str_BlocksVision != null
                         && !Lst_GameObjectsToIgnore.includes(CurrentGameObject)
                         && (CheckedGameObjects == null || !CheckedGameObjects.includes(CheckedGameObjects))){
-
-                    //check hitbox
-                    var HitBoxes = CurrentGameObject.Str_BlocksVision != null ? CurrentGameObject.LstBoxes_GetHitBoxesInLocalSpace(CurrentGameObject.Str_BlocksVision) : null;
-                    for(var loopObjBox = 0; loopObjBox < HitBoxes.length; loopObjBox++){
-                        if(HitBoxes[loopObjBox].Bool_IsLineInBox(Vector_PointOfSight, EndPoint)){
-                            Bool_FoundCollision = true;
-                            return true;
+                    
+                    if(Lst_GameObjs == null){
+                        Lst_GameObjs = [];
+                    }
+                    Lst_GameObjs.push(CurrentBox);
+                }
+            }
+            //need to check tile
+            if((Tile.TileDef != null && Tile.TileDef.Bool_BlocksVision)
+                    || Lst_Boxes == null
+                    || Lst_GameObjs == null){
+                
+                 //check tile
+                if(Tile.HitBox.Bool_IsLineInBox(Vector_PointOfSight, EndPoint)){
+                     //hit tile
+                    if(Tile.TileDef != null && Tile.TileDef.Bool_BlocksVision){
+                        Bool_FoundCollision = true;
+                        return true;
+                    }
+                    //hit map sprites
+                    if(LstSprites != null){
+                        for(var loopObjBox = 0; loopObjBox < LstSprites.length; loopObjBox++){
+                            var CurrentBox = LstSprites[loopObjBox];
+                            if(CurrentBox.Bool_IsLineInBox(Vector_PointOfSight, EndPoint)){
+                                Bool_FoundCollision = true;
+                                return true;
+                            }
+                            else{
+                                if(CheckedHitBoxes == null){
+                                    CheckedHitBoxes = [];
+                                }
+                                CheckedHitBoxes.push(CurrentBox);
+                            }
                         }
                     }
-                    //record Game Object
-                    if(CheckedGameObjects == null){
-                        CheckedGameObjects = [];
+                    //hit GameObject
+                    if(Lst_GameObjs != null){
+                        for(var loopGameObj = 0; loopGameObj < Lst_GameObjs.length; loopGameObj++){
+                            var CurrentGameObject = Lst_GameObjs[loopGameObj];
+
+                            //check hitbox
+                            var HitBoxes = CurrentGameObject.Str_BlocksVision != null ? CurrentGameObject.LstBoxes_GetHitBoxesInLocalSpace(CurrentGameObject.Str_BlocksVision) : null;
+                            for(var loopObjBox = 0; loopObjBox < HitBoxes.length; loopObjBox++){
+                                if(HitBoxes[loopObjBox].Bool_IsLineInBox(Vector_PointOfSight, EndPoint)){
+                                    Bool_FoundCollision = true;
+                                    return true;
+                                }
+                            }
+                            //record Game Object
+                            if(CheckedGameObjects == null){
+                                CheckedGameObjects = [];
+                            }
+                            CheckedGameObjects.push(CurrentGameObject);
+                        }
                     }
-                    CheckedGameObjects.push(CurrentGameObject);
                 }
             }
             return false;
@@ -875,47 +1069,79 @@ function Bool_HasShot(Lst_Levels, Vector_PointOfSight, Lst_Boxes, Lst_GameObject
     for(var loopBox = 0; loopBox < Lst_Boxes.length; loopBox++){
         var EndPoint = Lst_Boxes[loopBox].Vector_Center;
         var Bool_FoundCollision = false;
-        forEach_TileOnLine(Lst_Levels, Vector_PointOfSight, EndPoint, (Tile) => {
-            //check tile
-            if(Tile.TileDef != null && Tile.TileDef.Bool_BlocksShots){
-                Bool_FoundCollision = true;
-                return true;
-            }
-            //check map sprites
+        forEach_TileOnLine(Lst_Levels, Vector_PointOfSight, EndPoint, false, (Tile) => {
+            //get boxes
+            Lst_Boxs = null;
             for(var loopObjBox = 0; loopObjBox < Tile.LstBoxes_BlocksShots.length; loopObjBox++){
                 var CurrentBox = Tile.LstBoxes_BlocksShots[loopObjBox];
                 if(CheckedHitBoxes == null || !CheckedHitBoxes.includes(CurrentBox)){
-                    if(CurrentBox.Bool_IsLineInBox(Vector_PointOfSight, EndPoint)){
-                        Bool_FoundCollision = true;
-                        return true;
+                    if(Lst_Boxs == null){
+                        Lst_Boxs = [];
                     }
-                    else{
-                        if(CheckedHitBoxes == null){
-                            CheckedHitBoxes = [];
-                        }
-                        CheckedHitBoxes.push(CurrentBox);
-                    }
+                    Lst_Boxs.push(Tile.LstBoxes_BlocksShots[loopObjBox]);
                 }
             }
-            //check game objects
+            //get objs
+            Lst_GameObjs = null;
             for(var loopGameObj = 0; loopGameObj < Tile.LstObjects_GameObjects.length; loopGameObj++){
                 var CurrentGameObject = Tile.LstObjects_GameObjects[loopGameObj];
                 if(CurrentGameObject.Str_BlocksShots != null
                         && !Lst_GameObjectsToIgnore.includes(CurrentGameObject)
                         && (CheckedGameObjects == null || !CheckedGameObjects.includes(CheckedGameObjects))){
+                    
+                    if(Lst_GameObjs == null){
+                        Lst_GameObjs = [];
+                    }
+                    Lst_GameObjs.push(CurrentGameObject);
+                }
+            }
+            
+            //do we need to check tile
+            if((Tile.TileDef != null && Tile.TileDef.Bool_BlocksShots)
+                    || Lst_Boxs != null
+                    || Lst_GameObjs != null){
 
-                    var HitBoxes = CurrentGameObject.Str_BlocksShots != null ? CurrentGameObject.LstBoxes_GetHitBoxesInLocalSpace(CurrentGameObject.Str_BlocksShots) : null;
-                    for(var loopObjBox = 0; loopObjBox < HitBoxes.length; loopObjBox++){
-                        if(HitBoxes[loopObjBox].Bool_IsLineInBox(Vector_PointOfSight, EndPoint)){
-                            Bool_FoundCollision = true;
-                            return true;
+                //check tile
+                if(Tile.HitBox.Bool_IsLineInBox(Vector_PointOfSight, EndPoint)){
+                    //tile is blocking
+                    if(Tile.TileDef != null && Tile.TileDef.Bool_BlocksShots){
+                        Bool_FoundCollision = true;
+                        return true;
+                    }
+                    //map sprite is blocking
+                    if(Lst_Boxs != null){
+                        for(var loopObjBox = 0; loopObjBox < Lst_Boxs.length; loopObjBox++){
+                            var CurrentBox = Lst_Boxs[loopObjBox];  
+                            if(CurrentBox.Bool_IsLineInBox(Vector_PointOfSight, EndPoint)){
+                                Bool_FoundCollision = true;
+                                return true;
+                            }
+                            else{
+                                if(CheckedHitBoxes == null){
+                                    CheckedHitBoxes = [];
+                                }
+                                CheckedHitBoxes.push(CurrentBox);
+                            }
                         }
                     }
-                    //record Game Object
-                    if(CheckedGameObjects == null){
-                        CheckedGameObjects = [];
+                    //is game object blocking
+                    if(Lst_GameObjs != null){
+                        for(var loopGameObj = 0; loopGameObj < Lst_GameObjs.length; loopGameObj++){
+                            var CurrentGameObject = Lst_GameObjs[loopGameObj];
+                            var HitBoxes = CurrentGameObject.Str_BlocksShots != null ? CurrentGameObject.LstBoxes_GetHitBoxesInLocalSpace(CurrentGameObject.Str_BlocksShots) : null;
+                            for(var loopObjBox = 0; loopObjBox < HitBoxes.length; loopObjBox++){
+                                if(HitBoxes[loopObjBox].Bool_IsLineInBox(Vector_PointOfSight, EndPoint)){
+                                    Bool_FoundCollision = true;
+                                    return true;
+                                }
+                            }
+                            //record Game Object
+                            if(CheckedGameObjects == null){
+                                CheckedGameObjects = [];
+                            }
+                            CheckedGameObjects.push(CurrentGameObject);
+                        }
                     }
-                    CheckedGameObjects.push(CurrentGameObject);
                 }
             }
             return false;
@@ -953,63 +1179,93 @@ function Vector_BulletInpactPoint(Lst_Levels, Vector_PointOfSight, Vector_MaxEnd
     //for simplicities saker were only hoing to check each center
     var CheckedHitBoxes = null;     //Because MapSprites and Game Objects can be in more then one tile at once but we dont' want to check them more than once
     var CheckedGameObjects = null;
-    forEach_TileOnLine(Lst_Levels, Vector_PointOfSight, Vector_MaxEndPoint, (Tile) => {
-        //check tile
-        if(Tile.TileDef != null && Tile.TileDef.Bool_BlocksShots){
-            var InterSect = Tile.HitBox.Vector_GetClosestIntersection(Vector_PointOfSight, Vector_MaxEndPoint);
-            if(InterSect != null){
-                Vector_temp.Assign(InterSect);
-                Vector_temp.SubtractFromSelf(Vector_PointOfSight);
-                if(RetVal == null || (oldDistance > Vector_temp.Num_GetManhattan())){
-                    RetVal = InterSect;
-                    oldDistance = Vector_temp.Num_GetManhattan();
-                }
-            }
-        }
-        //check map sprites
+    forEach_TileOnLine(Lst_Levels, Vector_PointOfSight, Vector_MaxEndPoint, false, (Tile) => {
+        //get map sprites t0 check
+        Lst_MapSprites = null;
         for(var loopObjBox = 0; loopObjBox < Tile.LstBoxes_BlocksShots.length; loopObjBox++){
             var CurrentBox = Tile.LstBoxes_BlocksShots[loopObjBox];
             if(CheckedHitBoxes == null || !CheckedHitBoxes.includes(CurrentBox)){
-                //check intersect
-                var InterSect = CurrentBox.Vector_GetClosestIntersection(Vector_PointOfSight, Vector_MaxEndPoint);
-                if(InterSect != null){
-                    Vector_temp.Assign(InterSect);
-                    Vector_temp.SubtractFromSelf(Vector_PointOfSight);
-                    if(RetVal == null || (oldDistance > Vector_temp.Num_GetManhattan())){
-                        RetVal = InterSect;
-                        oldDistance = Vector_temp.Num_GetManhattan();
-                    }
+                if(Lst_MapSprites == null){
+                    Lst_MapSprites = [];
                 }
-                //record hitbox
-                if(CheckedHitBoxes == null){
-                    CheckedHitBoxes = [];
-                }
-                CheckedHitBoxes.push(CurrentBox);
+                Lst_MapSprites.push(CurrentBox);
             }
         }
-        //check game objects
+        //get game objects to check
+        Lst_GameObjects = null;
         for(var loopGameObj = 0; loopGameObj < Tile.LstObjects_GameObjects.length; loopGameObj++){
             var CurrentGameObject = Tile.LstObjects_GameObjects[loopGameObj];
             if(CurrentGameObject.Str_BlocksShots != null
                     && !Lst_GameObjectsToIgnore.includes(CurrentGameObject)
                     && (CheckedGameObjects == null || !CheckedGameObjects.includes(CheckedGameObjects))){
-
-                //record Game Object
-                if(CheckedGameObjects == null){
-                    CheckedGameObjects = [];
+            
+                if(Lst_GameObjects == null){
+                    Lst_GameObjects = [];
                 }
-                CheckedGameObjects.push(CurrentGameObject);
+                Lst_GameObjects.push(CurrentGameObject);
+            }
+        }
+        
+        //need to check tile
+        if((Tile.TileDef != null && Tile.TileDef.Bool_BlocksShots)
+                || Lst_MapSprites != null
+                || Lst_GameObjects != null){
 
-                //check intersects
-                var HitBoxes = CurrentGameObject.Str_BlocksShots != null ? CurrentGameObject.LstBoxes_GetHitBoxesInLocalSpace(CurrentGameObject.Str_BlocksShots) : null;
-                for(var loopObjBox = 0; loopObjBox < HitBoxes.length; loopObjBox++){
-                    var InterSect = HitBoxes[loopObjBox].Vector_GetClosestIntersection(Vector_PointOfSight, Vector_MaxEndPoint);
-                    if(InterSect != null){
-                        Vector_temp.Assign(InterSect);
-                        Vector_temp.SubtractFromSelf(Vector_PointOfSight);
-                        if(RetVal == null || (oldDistance > Vector_temp.Num_GetManhattan())){
-                            RetVal = InterSect;
-                            oldDistance = Vector_temp.Num_GetManhattan();
+            //check tile
+            var TileIntersect = Tile.HitBox.Vector_GetClosestIntersection(Vector_PointOfSight, Vector_MaxEndPoint);
+            if(TileIntersect != null){
+                //record intersect
+                if(Tile.TileDef != null && Tile.TileDef.Bool_BlocksShots){
+                    Vector_temp.Assign(TileIntersect);
+                    Vector_temp.SubtractFromSelf(Vector_PointOfSight);
+                    if(RetVal == null || (oldDistance > Vector_temp.Num_GetManhattan())){
+                        RetVal = TileIntersect;
+                        oldDistance = Vector_temp.Num_GetManhattan();
+                    }
+                }
+                //check map sprites
+                if(Lst_MapSprites != null){
+                    for(var loopObjBox = 0; loopObjBox < Lst_MapSprites.length; loopObjBox++){
+                        var CurrentBox = Lst_MapSprites[loopObjBox];
+                        //check intersect
+                        var InterSect = CurrentBox.Vector_GetClosestIntersection(Vector_PointOfSight, Vector_MaxEndPoint);
+                        if(InterSect != null){
+                            Vector_temp.Assign(InterSect);
+                            Vector_temp.SubtractFromSelf(Vector_PointOfSight);
+                            if(RetVal == null || (oldDistance > Vector_temp.Num_GetManhattan())){
+                                RetVal = InterSect;
+                                oldDistance = Vector_temp.Num_GetManhattan();
+                            }
+                        }
+                        //record hitbox
+                        if(CheckedHitBoxes == null){
+                            CheckedHitBoxes = [];
+                        }
+                        CheckedHitBoxes.push(CurrentBox);
+                    }
+                }
+                //check game objects
+                if(Lst_GameObjects){
+                    for(var loopGameObj = 0; loopGameObj < Lst_GameObjects.length; loopGameObj++){
+                        var CurrentGameObject = Lst_GameObjects[loopGameObj];
+                        //record Game Object
+                        if(CheckedGameObjects == null){
+                            CheckedGameObjects = [];
+                        }
+                        CheckedGameObjects.push(CurrentGameObject);
+        
+                        //check intersects
+                        var HitBoxes = CurrentGameObject.Str_BlocksShots != null ? CurrentGameObject.LstBoxes_GetHitBoxesInLocalSpace(CurrentGameObject.Str_BlocksShots) : null;
+                        for(var loopObjBox = 0; loopObjBox < HitBoxes.length; loopObjBox++){
+                            var InterSect = HitBoxes[loopObjBox].Vector_GetClosestIntersection(Vector_PointOfSight, Vector_MaxEndPoint);
+                            if(InterSect != null){
+                                Vector_temp.Assign(InterSect);
+                                Vector_temp.SubtractFromSelf(Vector_PointOfSight);
+                                if(RetVal == null || (oldDistance > Vector_temp.Num_GetManhattan())){
+                                    RetVal = InterSect;
+                                    oldDistance = Vector_temp.Num_GetManhattan();
+                                }
+                            }
                         }
                     }
                 }
@@ -1054,160 +1310,4 @@ function Vector_GetMapCollisionSolution(Lst_Levels, Lst_ObjectBoxes, Obj_Self){
     }
     return Vector_GetCollisionSolution(Lst_ObstructionBoxes, Lst_ObjectBoxes);
     //we want to 
-}
-/**
- * Func_Break is passed a MapTileInstance, if it returns true the loop will break
- * @param {array} Lst_Levels 
- * @param {Vector2D} Vector_Start 
- * @param {Vector2D} Vector_End 
- * @param {funtion} Func_Break 
- */
-function forEach_TileOnLine(Lst_Levels, Vector_Start, Vector_End, Func_Break){
-    if(!Array.isArray(Lst_Levels)
-            || Vector_Start == null
-            || Vector_End == null
-            || Func_Break == null){
-        return;
-    }
-    //get bounds
-    var MinX = Math.min(Vector_Start.x, Vector_End.x);
-    var MinY = Math.min(Vector_Start.y, Vector_End.y);
-    var MaxX = Math.max(Vector_Start.x, Vector_End.x);
-    var MaxY = Math.max(Vector_Start.y, Vector_End.y);
-    
-    MinX = Math.round(MinX);
-    MinY = Math.round(MinY);
-    MaxX = Math.round(MaxX);
-    MaxY = Math.round(MaxY);
-
-    if(MinX > MaxX || MinY > MaxY){
-        return;
-    }
-
-    var temp = new Vector2D();
-    for(var loopX = MinX; loopX <= MaxX; ++loopX){
-        for(var loopY = MinY; loopY <= MaxY; ++loopY){
-            temp.x = loopX;
-            temp.y = loopY;
-            for(var loopLevel = 0; loopLevel < Lst_Levels.length; ++loopLevel){
-                if(Lst_Levels[loopLevel] == null){
-                    continue;
-                }
-                var Tile = Lst_Levels[loopLevel].Tile_GetTile(temp);
-                if(Tile == null || Tile.HitBox == null){
-                    continue;
-                }
-                if(!Tile.HitBox.Bool_IsLineInBox(Vector_Start, Vector_End)){
-                    continue;
-                }
-                if(Func_Break(Tile)){
-                    return;
-                }
-            }
-        }
-    }
-}
-/**
- * Func_Break is passed a MapTileInstance, if it returns true the loop will break
- * @param {array} Lst_Levels 
- * @param {array} Lst_HitBoxes 
- * @param {function} Func_Break 
- * @param {boolean} Bool_IncludeEdges
- * @param {boolean} Bool_CollisionsOnly
- */
-function forEach_TileInBounds(Lst_Levels, Lst_HitBoxes, Bool_IncludeEdges, Bool_CollisionsOnly, Func_Break){
-    if(!Array.isArray(Lst_Levels)
-            || Lst_Levels.length <= 0
-            || !Array.isArray(Lst_HitBoxes)
-            || Lst_HitBoxes.length <= 0
-            || Func_Break == null){
-        
-        return;
-    }
-    //get bounds
-    var MinX = null;
-    var MinY = null;
-    var MaxX = null;
-    var MaxY = null;
-
-    Lst_HitBoxes.forEach(element => {
-        var temp = element.Vector_Center.x - (element.Vector_Size.x / 2);
-        if(MinX == null){
-            MinX = temp;
-        }
-        else {
-            MinX = Math.min(MinX, temp);
-        }
-        temp = element.Vector_Center.y - (element.Vector_Size.y / 2);
-        if(MinY == null){
-            MinY = temp;
-        }
-        else {
-            MinY = Math.min(MinY, temp);
-        }
-        temp = element.Vector_Center.x + (element.Vector_Size.x / 2);
-        if(MaxX == null){
-            MaxX = temp;
-        }
-        else {
-            MaxX = Math.max(MaxX, temp);
-        }
-        temp = element.Vector_Center.y + (element.Vector_Size.y / 2);
-        if(MaxY == null){
-            MaxY = temp;
-        }
-        else {
-            MaxY = Math.max(MaxY, temp);
-        }
-    });
-    if(MinX == null || MinY == null || MaxX == null || MaxY == null){
-        return;
-    }
-    MinX = Math.round(MinX);
-    MinY = Math.round(MinY);
-    MaxX = Math.round(MaxX);
-    MaxY = Math.round(MaxY);
-
-    if(Bool_IncludeEdges){
-        MinX -= 1;
-        MinY -= 1;
-        MaxX += 1;
-        MaxY += 1;
-    }
-    if(MinX > MaxX || MinY > MaxY){
-        return;
-    }
-    var temp = new Vector2D();
-    for(var loopX = MinX; loopX <= MaxX; ++loopX){
-        for(var loopY = MinY; loopY <= MaxY; ++loopY){
-            temp.x = loopX;
-            temp.y = loopY;
-            for(var loopLevel = 0; loopLevel < Lst_Levels.length; ++loopLevel){
-                if(Lst_Levels[loopLevel] == null){
-                    continue;
-                }
-                var Tile = Lst_Levels[loopLevel].Tile_GetTile(temp);
-                if(Tile == null || Tile.TileDef == null){
-                    continue;
-                }
-                if(Bool_CollisionsOnly){
-                    if(Tile.HitBox == null){
-                        continue;
-                    }
-                    var IsColliding = false;
-                    for(var LoopCollision = 0; !IsColliding && LoopCollision < Lst_HitBoxes.length; ++LoopCollision){
-                        if(Bool_GetCollisionData(Lst_HitBoxes[LoopCollision], Tile.HitBox)){
-                            IsColliding = true;
-                        }
-                    }
-                    if(!IsColliding){
-                        continue;
-                    }
-                }
-                if(Func_Break(Tile)){
-                    return;
-                }
-            }
-        }
-    }
 }

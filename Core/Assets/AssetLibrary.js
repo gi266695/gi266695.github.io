@@ -7,6 +7,8 @@ class AssetLibrary {
         this.Sprites = {};
         this.Animations = {};
         this.Images = {};
+
+        this.Dct_LoadsInProgress = {};
     }
     /**
      * will attempt to load everything from the paths given returns success on complete
@@ -185,17 +187,24 @@ class AssetLibrary {
             IsLoaded(defPath, true);
             return;
         }
+        //if someone is already trying to load this then we don't have to
+        if(this.Bool_IsLoadInProgress(defPath)){
+            this.Bool_ReportLoadInProgress(defPath, IsLoaded);
+            return;
+        }
+        if(!this.Bool_ReportLoadInProgress(defPath, IsLoaded)){
+            return;
+        }
         defPath = defPath.toLowerCase();
-       
+        var self = this;
+
         newImage = new Image();
         newImage.src = defPath;
         newImage.onload = Local_IsloadedSuccess;
         newImage.onerror = Local_IsloadedFail;
 
-        var self = this;
-
         function Local_IsloadedFail(){
-            IsLoaded(defPath, false);
+            self.ReportLoadComplete(defPath, false);
         }
         function Local_IsloadedSuccess(){
             if(!this.complete && this.naturalWidth !== 0){
@@ -204,12 +213,11 @@ class AssetLibrary {
             }
             self.AddImage(defPath, this);
             if(IsLoaded != null){
-                IsLoaded(defPath, true);
+                self.ReportLoadComplete(defPath, true);
             }
         }
     }
     /**
-     * 
      * @param {string} defPath 
      * @param {Image} newDef 
      */
@@ -221,7 +229,7 @@ class AssetLibrary {
      */
     GetImage(defPath){
         return this.GetAsset(this.Images, defPath);
-    }
+    }    
     //-------------------------------------------------------------------------
     //For internal use
     /**
@@ -275,14 +283,24 @@ class AssetLibrary {
             func_IsLoaded(defPath, false);  
             return;
         }
+        //if the asset is already loaded were done
         if(func_GetAsset(defPath) != null){
             func_IsLoaded(defPath, true);  
+            return;
+        }
+        //if someone is already trying to load this then we don't have to
+        if(this.Bool_IsLoadInProgress(defPath)){
+            this.Bool_ReportLoadInProgress(defPath, func_IsLoaded);
             return;
         }
         var NewAsset = func_NewAsset();
         if(NewAsset == null){
             return;
         }
+        if(!this.Bool_ReportLoadInProgress(defPath, func_IsLoaded)){
+            return;
+        }
+
         var self = this;
         NewAsset.Load(defPath, Local_Isloaded); 
 
@@ -291,12 +309,86 @@ class AssetLibrary {
                 self.LoadAssets(Asset.LstStr_GetDependencies(), function() {
                     Asset.SetDependencies(self);
                     func_AddAsset(str_Path, Asset);
-                    func_IsLoaded(defPath, true);
+
+                    self.ReportLoadComplete(defPath, true);
                 });
             }
             else{
-                func_IsLoaded(defPath, false);
+                self.ReportLoadComplete(defPath, false);
             }
         }
+    }
+    /**
+     * @param {string} Str_Path 
+     */
+    Bool_IsLoadInProgress(Str_Path){
+        if(Str_Path == null){
+            return false;
+        }
+        Str_Path = Str_Path.toLowerCase();
+        return Str_Path in this.Dct_LoadsInProgress;
+    }
+    /**
+     * Func_OnComplete(str_Path, bool_Oncomplete)
+     * @param {function} Func_OnComplete 
+     * @param {string} Str_Path 
+     */
+    Bool_ReportLoadInProgress(Str_Path, Func_OnComplete){
+        if(Func_OnComplete == null){
+            return false;
+        }
+        if(Str_Path == null){
+            Func_OnComplete(Str_Path, false);
+            return false;
+        }
+        Str_Path = Str_Path.toLowerCase();
+        if(!(Str_Path in this.Dct_LoadsInProgress)){
+            var newItem = new AssetLoadInProgress();
+            this.Dct_LoadsInProgress[Str_Path] = newItem;
+        }
+        this.Dct_LoadsInProgress[Str_Path].AddOnComplete(Func_OnComplete);
+        return true;
+    }
+    /**
+     * @param {string} Str_Path 
+     * @param {boolean} Bool_Success 
+     */
+    ReportLoadComplete(Str_Path, Bool_Success){
+        if(Str_Path == null){
+            return;
+        }
+        Str_Path = Str_Path.toLowerCase();
+        if(!(Str_Path in this.Dct_LoadsInProgress)){
+            return;
+        }
+        var EventQueue = this.Dct_LoadsInProgress[Str_Path];
+        delete this.Dct_LoadsInProgress[Str_Path];
+
+        EventQueue.OnComplete(Str_Path, Bool_Success);
+    }
+}
+
+class AssetLoadInProgress {
+    constructor(){
+        this.LstFunc_OnComplete = [];
+    }
+    /**
+     * Func_OnComplete(str_Path, bool_Oncomplete)
+     * @param {function} Func_OnComplete 
+     */
+    AddOnComplete(Func_OnComplete){
+        if(Func_OnComplete == null || this.LstFunc_OnComplete.includes(Func_OnComplete)){
+            return;
+        }  
+        this.LstFunc_OnComplete.push(Func_OnComplete); 
+    }
+    /**
+     * @param {string} str_Path 
+     * @param {boolean} Bool_Success 
+     */
+    OnComplete(str_Path, Bool_Success){
+        this.LstFunc_OnComplete.forEach(element => {
+            element(str_Path, Bool_Success);
+        });
     }
 }

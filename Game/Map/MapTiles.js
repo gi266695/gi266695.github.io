@@ -263,27 +263,29 @@ class MapTileInstance extends BaseInstance {
         //TODO: is this to brute force
         if(GameObj_ToInsert == null
                 || this.LstObjects_GameObjects.includes(GameObj_ToInsert)){
-            return;
+            return false;
         }
         this.LstObjects_GameObjects.push(GameObj_ToInsert);
         GameObj_ToInsert.AddTile(this);
-    
-        //TODO: update path finding information
+
+        return true;
     }
     /**
      * @param {GameObject} GameObj_ToInsert 
      */
     RemoveGameObject(GameObj_ToRemove){
         if(GameObj_ToRemove == null){
-            return;
+            return false;
         }
         //TODO: is this to brute force
         var index = this.LstObjects_GameObjects.indexOf(GameObj_ToRemove);
         if(index < 0){
-            return;
+            return false;
         }
         this.LstObjects_GameObjects.splice(index, 1);
         GameObj_ToRemove.RemoveTile(this);
+
+        return true;
 
         //TODO: update path finding information
     }

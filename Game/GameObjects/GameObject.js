@@ -253,7 +253,9 @@ class GameObject extends BaseInstance{
         for(var loop = 0; loop < this.LstTile_OnTiles.length;){
             var Tile = this.LstTile_OnTiles[loop];
             if(!Lst_Tiles.includes(Tile)){
-                Tile.RemoveGameObject(this); //this will remove tile from this.LstTile_OnTiles
+                if(!Tile.RemoveGameObject(this)){ //this will remove tile from this.LstTile_OnTiles
+                    this.LstTile_OnTiles.splice(loop, 1);
+                }
             }
             else{
                 loop++; 

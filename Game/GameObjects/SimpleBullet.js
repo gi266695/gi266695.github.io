@@ -79,6 +79,8 @@ class SimpleBullet extends GameObject{
                 }
                 break;
         }
+
+        //this.UpdateMapTiles();
     }
     /**
      * @param {GameObject} Obj_Other 
