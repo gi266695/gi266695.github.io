@@ -36,16 +36,15 @@ class Matrix3X3 {
         if(other == null){
             return;
         }
-        var Self = new Matrix3X3();
-        Self.Assign(this);
+        Matrix_TempMultiply.Assign(this);
 
-        this.m00 = (Self.m00 * other.m00) + (Self.m01 * other.m10)
-        this.m01 = (Self.m00 * other.m01) + (Self.m01 * other.m11)
-        this.m02 = (Self.m00 * other.m02) + (Self.m01 * other.m12) + Self.m02
+        this.m00 = (Matrix_TempMultiply.m00 * other.m00) + (Matrix_TempMultiply.m01 * other.m10)
+        this.m01 = (Matrix_TempMultiply.m00 * other.m01) + (Matrix_TempMultiply.m01 * other.m11)
+        this.m02 = (Matrix_TempMultiply.m00 * other.m02) + (Matrix_TempMultiply.m01 * other.m12) + Matrix_TempMultiply.m02
 
-        this.m10 = (Self.m10 * other.m00) + (Self.m11 * other.m10)
-        this.m11 = (Self.m10 * other.m01) + (Self.m11 * other.m11)
-        this.m12 = (Self.m10 * other.m02) + (Self.m11 * other.m12) + Self.m12;
+        this.m10 = (Matrix_TempMultiply.m10 * other.m00) + (Matrix_TempMultiply.m11 * other.m10)
+        this.m11 = (Matrix_TempMultiply.m10 * other.m01) + (Matrix_TempMultiply.m11 * other.m11)
+        this.m12 = (Matrix_TempMultiply.m10 * other.m02) + (Matrix_TempMultiply.m11 * other.m12) + Matrix_TempMultiply.m12;
     }
     /**
      * 
@@ -75,9 +74,8 @@ class Matrix3X3 {
      * @param {Number} Y 
     */
     TranslateSelf(X, Y){
-        var Temp = new Matrix3X3();
-        Temp.SetToTranslation(X, Y);
-        this.MultiplyMatrix(Temp);
+        Matrix_Temp.SetToTranslation(X, Y);
+        this.MultiplyMatrix(Matrix_Temp);
     }
     /** 
      * @param {Radians} X
@@ -94,9 +92,8 @@ class Matrix3X3 {
      * @param {Radians} X
     */
     RotateSelf(Radians){
-        var Temp = new Matrix3X3();
-        Temp.SetToRotation(Radians);
-        this.MultiplyMatrix(Temp);
+        Matrix_Temp.SetToRotation(Radians);
+        this.MultiplyMatrix(Matrix_Temp);
     }
     /** 
      * @param {Number} X
@@ -113,9 +110,8 @@ class Matrix3X3 {
      * @param {Number} Y 
     */
     ScaleSelf(X, Y){
-        var Temp = new Matrix3X3();
-        Temp.SetToScale(X, Y);
-        this.MultiplyMatrix(Temp);
+        Matrix_Temp.SetToScale(X, Y);
+        this.MultiplyMatrix(Matrix_Temp);
     }
 
     /*Bool_IsIdentity(){
@@ -188,6 +184,10 @@ class Matrix3X3 {
                                 this.m12);
     }
 }
+//some function here need to create temp matrix to multiply. this prevents extra news
+var Matrix_Temp = new Matrix3X3();
+var Matrix_TempMultiply = new Matrix3X3();
+
 //-----------------------------------------------------------------------------
 //Vector2D
 

@@ -1,3 +1,10 @@
+//every time we draw we build a hitbox in screan space to check if we are on screen. having  a staic one need we don't have to crreate a new one each frame
+var HitBox_RenderBox = new PolygonalHitBox();
+HitBox_RenderBox.LstVec_Points.push(new Vector2D());
+HitBox_RenderBox.LstVec_Points.push(new Vector2D());
+HitBox_RenderBox.LstVec_Points.push(new Vector2D());
+HitBox_RenderBox.LstVec_Points.push(new Vector2D());
+
 class SpriteSheetAsset extends BaseAsset {
     constructor(){
         super();
@@ -47,21 +54,26 @@ class SpriteSheetAsset extends BaseAsset {
         }
         CompleteTransform.MultiplyMatrix(this.LocalTransform);
 
-        CompleteTransform.Matrix_GetInverse();
-
         //check if this is on screen
-        var HitBox = new PolygonalHitBox();
-        HitBox.LstVec_Points.push(new Vector2D(0.5,0.5));
-        HitBox.LstVec_Points.push(new Vector2D(0.5,-0.5));
-        HitBox.LstVec_Points.push(new Vector2D(-0.5,-0.5));
-        HitBox.LstVec_Points.push(new Vector2D(-0.5,0.5));
-        HitBox.TrasnformToSpace(CompleteTransform);
+        HitBox_RenderBox.LstVec_Points[0].x = 0.5;
+        HitBox_RenderBox.LstVec_Points[0].y = 0.5;
+
+        HitBox_RenderBox.LstVec_Points[1].x = 0.5;
+        HitBox_RenderBox.LstVec_Points[1].y = -0.5;
+
+        HitBox_RenderBox.LstVec_Points[2].x = -0.5;
+        HitBox_RenderBox.LstVec_Points[2].y = -0.5;
+
+        HitBox_RenderBox.LstVec_Points[3].x = -0.5;
+        HitBox_RenderBox.LstVec_Points[3].y = 0.5;
+
+        HitBox_RenderBox.TrasnformToSpace(CompleteTransform);
     
         //debug draw before we decide whether or not to draw this
         if(coreData.DrawSpriteBoxes){
-            HitBox.Draw(coreData, null)
+            HitBox_RenderBox.Draw(coreData, null)
         }
-        if(coreData.LayerStack.ScreenBox != null && !Bool_GetCollisionData(HitBox, coreData.LayerStack.ScreenBox)){
+        if(coreData.LayerStack.ScreenBox != null && !Bool_GetCollisionData(HitBox_RenderBox, coreData.LayerStack.ScreenBox)){
             return;
         }
 
@@ -86,7 +98,7 @@ class SpriteSheetAsset extends BaseAsset {
                             -0.5,
                             1,
                             1);
-        context.restore();
+        //context.restore();
     }
     /**
      * Load data from file now that the file has been loaded
@@ -245,7 +257,7 @@ class SpriteSheetAsset extends BaseAsset {
             }
         }
         var NumFrames = this.Num_GetFrameCount();
-        var RetVal = parseInt((Miliseconds / AnimTime) * NumFrames);
+        var RetVal = Math.trunc((Miliseconds / AnimTime) * NumFrames);
         if(RetVal >= NumFrames){
             --RetVal;
         }
@@ -255,12 +267,12 @@ class SpriteSheetAsset extends BaseAsset {
         if(this.Columns <= 1){
             return 0;
         }
-        return parseInt(FrameIndex / this.Columns);
+        return Math.trunc(FrameIndex / this.Columns);
     }
     Num_GetFrameColumn(FrameIndex){
         if(this.Columns <= 0){
             return 0;
         }
-        return parseInt(FrameIndex % this.Columns);
+        return Math.trunc(FrameIndex % this.Columns);
     }
 }

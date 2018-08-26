@@ -250,13 +250,13 @@ class AnimationStep extends BaseAsset {
             CompleteTransform.MultiplyMatrix(ParentTranform);
         }
         this.Lst_MatrixAnimations.forEach(element => {
-            CompleteTransform.MultiplyMatrix(element.Matrix_GetCurrentMatrix(AnimationTime));
+            element.MultiplyMatrix(CompleteTransform, AnimationTime);
         });
 
         //get alpha
         var CompleteAlpha = ParentAlpha;
         this.Lst_AlphaAnimations.forEach(element => {
-            CompleteAlpha *= CompleteAlpha.Num_GetValue(AnimationTime);
+            CompleteAlpha *= element.Num_GetValue(AnimationTime);
         });
 
         //draw sub animations
@@ -364,8 +364,10 @@ class MatrixAnimation{
     /**
      * @param {Number} Num_AnimationTime 
      */
-    Matrix_GetCurrentMatrix(Num_AnimationTime){
-        var RetVal = new Matrix3X3();
+    MultiplyMatrix(Matrix_target, Num_AnimationTime){
+        if(Matrix_target == null){
+            return;
+        }
         
         //translate
         var x = 0;
@@ -377,7 +379,7 @@ class MatrixAnimation{
             y = this.MoveY.Num_GetValue(Num_AnimationTime);
         }
         if(x != 0 || y != 0){
-            RetVal.TranslateSelf(x,y);
+            Matrix_target.TranslateSelf(x,y);
         }
 
         //scale
@@ -390,15 +392,13 @@ class MatrixAnimation{
             y = this.ScaleY.Num_GetValue(Num_AnimationTime);
         }
         if(x != 1 || y != 1){
-            RetVal.ScaleSelf(x, y);
+            Matrix_target.ScaleSelf(x, y);
         }
 
         //rotate
         if(this.Rotate != null && this.Rotate != 0){
-            RetVal.RotateSelf(this.Rotate.Num_GetValue(Num_AnimationTime));
+            Matrix_target.RotateSelf(this.Rotate.Num_GetValue(Num_AnimationTime));
         }
-
-        return RetVal;
     }
 }
 

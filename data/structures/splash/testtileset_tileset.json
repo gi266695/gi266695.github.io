@@ -2,7 +2,6 @@
 	"Tiles": [
 		{
 			"Name": "Wall",
-			"Priority": 10,
 			"MoveSpeed": 0,
 			"BlocksVision": true,
 			"BlocksShots": true,
@@ -39,13 +38,25 @@
 		},
 		{
 			"Name": "Floor",
-			"Priority": 0,
 			"MoveSpeed": 1,
 			"BlocksVision": false,
 			"BlocksShots": false,
 			"BlocksMovement": false,
 			"Animation": {
-				"comment": "TODO Draw Something"
+				"Steps": [{
+					"SpiteSheets": [{
+						"ImagePath": "blacktile.png",
+						"SecondsPerFrame": 0.20,
+						"Width": 1,
+						"Height": 1,
+						"CenterX": 0,
+						"CenterY": 0,
+						"Rows": 1,
+						"Columns": 1,
+						"Remainder": 0,
+						"Loop": true
+					}]
+				}]
 			}
 		}	
 	]

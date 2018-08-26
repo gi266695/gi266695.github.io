@@ -145,7 +145,7 @@ class GameLayer {
                 return;
             }
             //insert new set
-            if(Num_Priority < currentSet.priority ){
+            if(Num_Priority < currentSet.Num_Priority){
                 var newSet = new LayerInstanceSet();
                 newSet.Num_Priority = Num_Priority;
                 newSet.AddInstance(Instance);

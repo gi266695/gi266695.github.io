@@ -957,7 +957,7 @@ function Bool_HasLineOfSite(Lst_Levels, Vector_PointOfSight, Lst_Boxes, Lst_Game
         var Bool_FoundCollision = false;
         forEach_TileOnLine(Lst_Levels, Vector_PointOfSight, EndPoint, false, (Tile) => {
             //get sprite boxes
-            LstSprites = null;
+            var LstSprites = null;
             for(var loopObjBox = 0; loopObjBox < Tile.LstBoxes_BlocksVision.length; loopObjBox++){
                 var CurrentBox = Tile.LstBoxes_BlocksVision[loopObjBox];
                 if(CheckedHitBoxes == null || !CheckedHitBoxes.includes(CurrentBox)){
@@ -968,7 +968,7 @@ function Bool_HasLineOfSite(Lst_Levels, Vector_PointOfSight, Lst_Boxes, Lst_Game
                 }
             }
             //get game objects
-            Lst_GameObjs = null;
+            var Lst_GameObjs = null;
             for(var loopGameObj = 0; loopGameObj < Tile.LstObjects_GameObjects.length; loopGameObj++){
                 var CurrentGameObject = Tile.LstObjects_GameObjects[loopGameObj];
                 if(CurrentGameObject.Str_BlocksVision != null
@@ -1071,18 +1071,18 @@ function Bool_HasShot(Lst_Levels, Vector_PointOfSight, Lst_Boxes, Lst_GameObject
         var Bool_FoundCollision = false;
         forEach_TileOnLine(Lst_Levels, Vector_PointOfSight, EndPoint, false, (Tile) => {
             //get boxes
-            Lst_Boxs = null;
+            var Lst_Boxs = null;
             for(var loopObjBox = 0; loopObjBox < Tile.LstBoxes_BlocksShots.length; loopObjBox++){
                 var CurrentBox = Tile.LstBoxes_BlocksShots[loopObjBox];
                 if(CheckedHitBoxes == null || !CheckedHitBoxes.includes(CurrentBox)){
                     if(Lst_Boxs == null){
                         Lst_Boxs = [];
                     }
-                    Lst_Boxs.push(Tile.LstBoxes_BlocksShots[loopObjBox]);
+                    Lst_Boxs.push(CurrentBox);
                 }
             }
             //get objs
-            Lst_GameObjs = null;
+            var Lst_GameObjs = null;
             for(var loopGameObj = 0; loopGameObj < Tile.LstObjects_GameObjects.length; loopGameObj++){
                 var CurrentGameObject = Tile.LstObjects_GameObjects[loopGameObj];
                 if(CurrentGameObject.Str_BlocksShots != null
@@ -1181,7 +1181,7 @@ function Vector_BulletInpactPoint(Lst_Levels, Vector_PointOfSight, Vector_MaxEnd
     var CheckedGameObjects = null;
     forEach_TileOnLine(Lst_Levels, Vector_PointOfSight, Vector_MaxEndPoint, false, (Tile) => {
         //get map sprites t0 check
-        Lst_MapSprites = null;
+        var Lst_MapSprites = null;
         for(var loopObjBox = 0; loopObjBox < Tile.LstBoxes_BlocksShots.length; loopObjBox++){
             var CurrentBox = Tile.LstBoxes_BlocksShots[loopObjBox];
             if(CheckedHitBoxes == null || !CheckedHitBoxes.includes(CurrentBox)){
@@ -1192,7 +1192,7 @@ function Vector_BulletInpactPoint(Lst_Levels, Vector_PointOfSight, Vector_MaxEnd
             }
         }
         //get game objects to check
-        Lst_GameObjects = null;
+        var Lst_GameObjects = null;
         for(var loopGameObj = 0; loopGameObj < Tile.LstObjects_GameObjects.length; loopGameObj++){
             var CurrentGameObject = Tile.LstObjects_GameObjects[loopGameObj];
             if(CurrentGameObject.Str_BlocksShots != null
