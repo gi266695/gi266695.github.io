@@ -6,7 +6,7 @@
 <body>
 <div>
     <h2>Something Resembling a game</h2>
-    <p id="demo"></p>
+    <p id="FrameTime"></p>
     <input id="inputCheckBox_ShowHitBoxes" type="checkbox">Show Hitboxes</input>
     <input id="inputCheckBox_ShowSpriteBoxes" type="checkbox">Show SpriteBoxes</input>
     <input id="inputCheckBox_ShowSpriteCenters" type="checkbox">Show Sprite Centers</input>
@@ -18,13 +18,16 @@
     var FirstTick = true;
 
     var sourceWindow = document.getElementById("sourceWindow");
-    var DemoObj = document.getElementById("demo"); 
+    var FrameTime = document.getElementById("FrameTime");
     var inputCheckBox_ShowHitBoxes = document.getElementById("inputCheckBox_ShowHitBoxes"); 
     var inputCheckBox_ShowSpriteBoxes = document.getElementById("inputCheckBox_ShowSpriteBoxes"); 
     var inputCheckBox_ShowSpriteCenters = document.getElementById("inputCheckBox_ShowSpriteCenters");
     var gameplayLayer = null;
 
-     var LastCoreData = null;
+    var LastCoreData = null;
+
+    var MinFrameRate = null;
+    var MaxFrameRate = null;
 
     //Mainloop.js
     Core_Init(window, document, sourceWindow, "Core/", (coreData, DeltaTime) => {
@@ -42,9 +45,10 @@
                                 , "/Game/GameAssetLibrary.js"
                                 , "/Game/GameplayLayer.js"];
 
-            Core_LoadScripts(coreData, lstGameScripts, () =>{
+            Core_LoadScripts(coreData, lstGameScripts, () => {
                 coreData.AssetLibrary = new GameAssetLibrary();
-
+                
+                
                 gameplayLayer = new GameplayLayer();
                 coreData.LayerStack.AddLayer(gameplayLayer, 1);
             });
@@ -66,7 +70,13 @@
         coreData.LayerStack.Tick(coreData, DeltaTime);
         coreData.LayerStack.Draw(coreData);
 
-        DemoObj.innerHTML = DeltaTime + "<br>";
+        if(MinFrameRate == null || MinFrameRate > DeltaTime){
+            MinFrameRate = DeltaTime;
+        }
+        if(MaxFrameRate == null || MaxFrameRate < DeltaTime){
+            MaxFrameRate = DeltaTime;
+        }
+        FrameTime.innerHTML = DeltaTime + "<br>Min: " + MinFrameRate + "<br>Max:" + MaxFrameRate + "<br>";
     });
     //show hitboxes
     inputCheckBox_ShowHitBoxes.onclick = () => {

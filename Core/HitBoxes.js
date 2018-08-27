@@ -411,8 +411,8 @@ function Bool_GetCollisionData(Box1, Box2, Vector_1_Normal = null, Vector_2_Norm
         return false;
     }
     //check if boxes are even remotly close
-    if(Math.abs(Box1.Num_GetBoundsCenterX() - Box2.Num_GetBoundsCenterX()) > (Box1.Num_GetBoundsSizeX() + Box2.Num_GetBoundsSizeX() / 2)
-            || Math.abs(Box1.Num_GetBoundsCenterY() - Box2.Num_GetBoundsCenterY()) > (Box1.Num_GetBoundsSizeY() + Box2.Num_GetBoundsSizeY() / 2)){
+    if(Math.abs(Box1.Vector_Center.x - Box2.Vector_Center.x) > ((Box1.Vector_Size.x + Box2.Vector_Size.x) / 2)
+            || Math.abs(Box1.Vector_Center.y - Box2.Vector_Center.y) > ((Box1.Vector_Size.y + Box2.Vector_Size.y) / 2)){
         return false
     }
     //if both boxes are simple and we don't need to find any

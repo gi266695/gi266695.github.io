@@ -88,18 +88,18 @@ class LayerStack{
             this.ScreenBox.LstVec_Points.push(new Vector2D());
             this.ScreenBox.LstVec_Points.push(new Vector2D());
         }
-        this.ScreenBox.LstVec_Points[0].x = 0;
-        this.ScreenBox.LstVec_Points[0].y = 0;
-        this.ScreenBox.LstVec_Points[1].x = 0;
-        this.ScreenBox.LstVec_Points[1].y = coreData.CanvasElement.height;
-        this.ScreenBox.LstVec_Points[2].x = coreData.CanvasElement.width;
-        this.ScreenBox.LstVec_Points[2].y = coreData.CanvasElement.height;
-        this.ScreenBox.LstVec_Points[3].x = coreData.CanvasElement.width;
-        this.ScreenBox.LstVec_Points[3].y = 0;
+        this.ScreenBox.LstVec_Points[0].x = /*10*/0;
+        this.ScreenBox.LstVec_Points[0].y = /*10*/0;
+        this.ScreenBox.LstVec_Points[1].x = /*10*/0;
+        this.ScreenBox.LstVec_Points[1].y = coreData.CanvasElement.height/* - 100*/;
+        this.ScreenBox.LstVec_Points[2].x = coreData.CanvasElement.width/* - 100*/;
+        this.ScreenBox.LstVec_Points[2].y = coreData.CanvasElement.height/* - 100*/;
+        this.ScreenBox.LstVec_Points[3].x = coreData.CanvasElement.width/* - 100*/;
+        this.ScreenBox.LstVec_Points[3].y = /*10*/0;
         this.ScreenBox.Init();
 
         if(coreData.DrawSpriteBoxes){
-            this.ScreenBox.Draw(coreData, null);
+            this.ScreenBox.Draw(coreData, null, "#ff0000");
         }
 
         //draw layers Bottom up
