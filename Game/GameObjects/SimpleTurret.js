@@ -30,7 +30,7 @@ class SimpleTurret extends GameObject{
         this.Obj_AgroTarget = null;
         this.Num_StateTimer = 0;
 
-        this.BaseTick = super.Tick
+        this.GameObjectTick = super.Tick
     }
     static LstStr_GetDependecies(){
         return [
@@ -42,7 +42,7 @@ class SimpleTurret extends GameObject{
      * @param {CoreData} coreData 
      */
     Tick(coreData, DeltaTime){ 
-        this.BaseTick(coreData, DeltaTime);
+        this.GameObjectTick(coreData, DeltaTime);
 
         this.Num_StateTimer += DeltaTime;
 

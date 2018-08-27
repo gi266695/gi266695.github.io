@@ -35,7 +35,7 @@ class SpriteSheetAsset extends BaseAsset {
                 || this.Image == null
                 || !this.Image.complete
                 || this.Image.naturalWidth === 0){
-            //why is this even being fucking called
+            //why is this even being called
             return;
         }
         //get alpha
@@ -79,9 +79,9 @@ class SpriteSheetAsset extends BaseAsset {
 
         var FrameIndex = this.Num_GetFrameIndex(AnimationTime);
         var FrameRow =  this.Num_GetFrameRow(FrameIndex);
-        var FrameWidth = this.Image.width > 0 ? this.Image.width / this.Columns : 1;
+        var FrameWidth = this.Columns > 0 ? (this.Image.width / this.Columns) : 1;
         var FrameColumn = this.Num_GetFrameColumn(FrameIndex);
-        var FrameHeight = this.Image.height > 0 ? this.Image.height / this.Rows : 1;
+        var FrameHeight = this.Rows > 0 ? (this.Image.height / this.Rows) : 1;
 
         var context = coreData.GetContext2D(); 
         

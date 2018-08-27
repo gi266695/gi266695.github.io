@@ -30,6 +30,8 @@ class SimpleBullet extends GameObject{
         this.Enum_Team = Obj_Spawn != null ? Obj_Spawn.Enum_Team : Enum_GameObjectTeam.TEAM_NUTRAL_AGRESSIVE;
 
         this.SpawnObj = Obj_Spawn;
+
+        this.GameObjectTick = super.Tick;
     }
     static LstStr_GetDependecies(){
         return [
@@ -41,7 +43,7 @@ class SimpleBullet extends GameObject{
      * @param {CoreData} coreData 
      */
     Tick(coreData, DeltaTime){ 
-        super.Tick(coreData, DeltaTime);
+        this.GameObjectTick(coreData, DeltaTime);
         if(this.Layer == null){
             return;
         }

@@ -110,18 +110,18 @@ class PolygonalHitBox {
                                         && Bool_MaxX_MaxY);
         }
     }
-    Num_GetBoundsCenterX(){
-        return this.Vector_Center.x;
+    Num_GetMinX(){
+        return this.Vector_Center.x - (this.Vector_Size.x / 2);
     }
-    Num_GetBoundsCenterY(){
-        return this.Vector_Center.y;
+    Num_GetMaxX(){
+        return this.Vector_Center.x + (this.Vector_Size.x / 2);
     }
-    Num_GetBoundsSizeX(){
-       return this.Vector_Size.x;
+    Num_GetMinY(){
+        return this.Vector_Center.y - (this.Vector_Size.y / 2);
     }
-    Num_GetBoundsSizeY(){
-        return this.Vector_Size.y;
-     }
+    Num_GetMaxY(){
+        return this.Vector_Center.y + (this.Vector_Size.y / 2);
+    }
     /**
      * @param {Vector2D} point 
      */
@@ -134,10 +134,10 @@ class PolygonalHitBox {
             return false;
         }
         //is inside simple bounds
-        if(point.x < (this.Num_GetBoundsCenterX() - (this.Num_GetBoundsSizeX() / 2))
-                || point.x > (this.Num_GetBoundsCenterX() + (this.Num_GetBoundsSizeX() / 2))
-                || point.y < (this.Num_GetBoundsCenterY() - (this.Num_GetBoundsSizeY() / 2))
-                || point.y > (this.Num_GetBoundsCenterY() + (this.Num_GetBoundsSizeY() / 2))){
+        if(point.x < this.Num_GetMinX()
+                || point.x > this.Num_GetMaxX()
+                || point.y < this.Num_GetMinY()
+                || point.y > this.Num_GetMaxY()){
             
             return false;
         }
@@ -422,76 +422,103 @@ function Bool_GetCollisionData(Box1, Box2, Vector_1_Normal = null, Vector_2_Norm
             && Vector_2_Normal == null){
         return true;
     }
+    //if one of the boxes is unroted we can check to see if the other box is entirly inside it.
+    //if it is we can skip find intersection code as it wont find anything
+    var Bool_NeedToCheckIntersects = true;
+    if(Box1.Bool_IsUnrotatedBox
+            && Box1.Num_GetMinX() < Box2.Num_GetMinX()
+            && Box1.Num_GetMaxX() > Box2.Num_GetMaxX()
+            && Box1.Num_GetMinY() < Box2.Num_GetMinY()
+            && Box1.Num_GetMaxY() > Box2.Num_GetMaxY()){
+
+        if(Vector_1_Normal == null && Vector_2_Normal == null){
+            return true;
+        }
+        Bool_NeedToCheckIntersects = false;
+    }
+    if(!Bool_NeedToCheckIntersects
+            && Box2.Bool_IsUnrotatedBox
+            && Box2.Num_GetMinX() < Box1.Num_GetMinX()
+            && Box2.Num_GetMaxX() > Box1.Num_GetMaxX()
+            && Box2.Num_GetMinY() < Box1.Num_GetMinY()
+            && Box2.Num_GetMaxY() > Box1.Num_GetMaxY()){
+
+        if(Vector_1_Normal == null && Vector_2_Normal == null){
+            return true;
+        }
+        Bool_NeedToCheckIntersects = false;
+    }
 
     //check for intersetions
-    var Lst_Vectors_Box1 = null;
-    var Lst_Vectors_Box2 = null;
-    if(Vector_1_Normal != null){
-        Lst_Vectors_Box1 = [];
-    }
-    if(Vector_2_Normal != null){
-        Lst_Vectors_Box2 = [];
-    }
-    for(var loop1 = 0; loop1 < Box1.LstVec_Points.length; loop1++){
-        var a1 = Box1.LstVec_Points[loop1];
-        var a2 = null;
-        if(loop1 + 1 < Box1.LstVec_Points.length){
-            a2 = Box1.LstVec_Points[loop1 + 1];
+    if(Bool_NeedToCheckIntersects){
+        var Lst_Vectors_Box1 = null;
+        var Lst_Vectors_Box2 = null;
+        if(Vector_1_Normal != null){
+            Lst_Vectors_Box1 = [];
         }
-        else{
-            a2 = Box1.LstVec_Points[0];
+        if(Vector_2_Normal != null){
+            Lst_Vectors_Box2 = [];
         }
-        for(var loop2 = 0; loop2 < Box2.LstVec_Points.length; loop2++){
-            var b1 = Box2.LstVec_Points[loop2];
-            var b2 = null;
-            if(loop2 + 1 < Box2.LstVec_Points.length){
-                b2 = Box2.LstVec_Points[loop2 + 1];
+        for(var loop1 = 0; loop1 < Box1.LstVec_Points.length; loop1++){
+            var a1 = Box1.LstVec_Points[loop1];
+            var a2 = null;
+            if(loop1 + 1 < Box1.LstVec_Points.length){
+                a2 = Box1.LstVec_Points[loop1 + 1];
             }
             else{
-                b2 = Box2.LstVec_Points[0];
+                a2 = Box1.LstVec_Points[0];
             }
-
-            if(Bool_DoesLineIntersect(a1, a2, b1, b2)){
-                var NeedNormals = false;
-                if(Lst_Vectors_Box1 != null){
-                    NeedNormals = true;
-
-                    var Normal = Vector_GetNormalForSide(a1, a2, Box1.Vector_Center);
-                    if(Normal != null){
-                        Lst_Vectors_Box1.push(Normal);
-                    }
+            for(var loop2 = 0; loop2 < Box2.LstVec_Points.length; loop2++){
+                var b1 = Box2.LstVec_Points[loop2];
+                var b2 = null;
+                if(loop2 + 1 < Box2.LstVec_Points.length){
+                    b2 = Box2.LstVec_Points[loop2 + 1];
                 }
-                if(Lst_Vectors_Box2 != null){
-                    NeedNormals = true;
-
-                    var Normal = Vector_GetNormalForSide(b1, b2, Box2.Vector_Center);
-                    if(Normal != null){
-                        Lst_Vectors_Box2.push(Normal);
-                    }
+                else{
+                    b2 = Box2.LstVec_Points[0];
                 }
-                if(!NeedNormals){
-                    return true;
+
+                if(Bool_DoesLineIntersect(a1, a2, b1, b2)){
+                    var NeedNormals = false;
+                    if(Lst_Vectors_Box1 != null){
+                        NeedNormals = true;
+
+                        var Normal = Vector_GetNormalForSide(a1, a2, Box1.Vector_Center);
+                        if(Normal != null){
+                            Lst_Vectors_Box1.push(Normal);
+                        }
+                    }
+                    if(Lst_Vectors_Box2 != null){
+                        NeedNormals = true;
+
+                        var Normal = Vector_GetNormalForSide(b1, b2, Box2.Vector_Center);
+                        if(Normal != null){
+                            Lst_Vectors_Box2.push(Normal);
+                        }
+                    }
+                    if(!NeedNormals){
+                        return true;
+                    }
                 }
             }
         }
+        if(Lst_Vectors_Box1 != null && Lst_Vectors_Box1.length > 0){
+            Lst_Vectors_Box1.forEach(element => {
+                Vector_1_Normal.AddToSelf(element);
+            });
+            Vector_1_Normal.Normalize();
+        }
+        if(Lst_Vectors_Box2 != null && Lst_Vectors_Box2.length > 0){
+            Lst_Vectors_Box2.forEach(element => {
+                Vector_2_Normal.AddToSelf(element);
+            });
+            Vector_2_Normal.Normalize();
+        }
+        if((Lst_Vectors_Box1 != null && Lst_Vectors_Box1.length > 0)
+                || (Lst_Vectors_Box2 != null && Lst_Vectors_Box2.length > 0)){
+            return true;
+        }
     }
-    if(Lst_Vectors_Box1 != null && Lst_Vectors_Box1.length > 0){
-        Lst_Vectors_Box1.forEach(element => {
-            Vector_1_Normal.AddToSelf(element);
-        });
-        Vector_1_Normal.Normalize();
-    }
-    if(Lst_Vectors_Box2 != null && Lst_Vectors_Box2.length > 0){
-        Lst_Vectors_Box2.forEach(element => {
-            Vector_2_Normal.AddToSelf(element);
-        });
-        Vector_2_Normal.Normalize();
-    }
-    if((Lst_Vectors_Box1 != null && Lst_Vectors_Box1.length > 0)
-            || (Lst_Vectors_Box2 != null && Lst_Vectors_Box2.length > 0)){
-        return true;
-    }
-
     //the only case remaining is if if one box is completly in another
     if(Box1.Bool_IsPointInside(Box2.LstVec_Points[0]) || Box2.Bool_IsPointInside(Box1.LstVec_Points[0])){
         if(Vector_1_Normal != null){
