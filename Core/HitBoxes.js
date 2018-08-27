@@ -436,7 +436,7 @@ function Bool_GetCollisionData(Box1, Box2, Vector_1_Normal = null, Vector_2_Norm
         }
         Bool_NeedToCheckIntersects = false;
     }
-    if(!Bool_NeedToCheckIntersects
+    if(Bool_NeedToCheckIntersects
             && Box2.Bool_IsUnrotatedBox
             && Box2.Num_GetMinX() < Box1.Num_GetMinX()
             && Box2.Num_GetMaxX() > Box1.Num_GetMaxX()
