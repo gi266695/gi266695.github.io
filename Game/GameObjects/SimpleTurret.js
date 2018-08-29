@@ -176,7 +176,7 @@ class SimpleTurret extends GameObject{
             }
             break;
         }
-        this.UpdateMapTiles();
+        this.UpdateMapInforation();
     }
     bool_LoadFromFileData(jsonObject){
         if(!super.bool_LoadFromFileData(jsonObject)){

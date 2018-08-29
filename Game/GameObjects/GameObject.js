@@ -22,7 +22,7 @@ class GameObject extends BaseInstance{
         this.Str_AssetPaths = Str_SpritePath;
         this.LoadState = Enum_GameObjectLoadState.LOAD_STATE_UNLOADED;     
         this.Dct_GeneratedHitBoxes = {};
-        this.LstTile_OnTiles = [];
+        this.Set_InRooms = new Set();
         
         //Set internally usfull externally
         this.Sprite = null;
@@ -214,7 +214,7 @@ class GameObject extends BaseInstance{
     /**
      * @param {LevelInstance} Lst_Levels 
      */
-    UpdateMapTiles(){
+    UpdateMapInforation(){
         if(this.Layer == null
                 || !Array.isArray(this.Layer.Lst_ActiveLevels)
                 || this.Layer.Lst_ActiveLevels.length <= 0){
@@ -245,21 +245,26 @@ class GameObject extends BaseInstance{
         if(Lst_HitBoxes.length <= 0){
             return;
         }
-        var Lst_Tiles = [];
-        forEach_TileInBounds(Lst_Levels, Lst_HitBoxes, false, true, (Tile) => {
-            Lst_Tiles.push(Tile);
-            Tile.AddGameObject(this);
+        var lst_NewRooms = [];
+        forEach_RoomInBounds(Lst_Levels, Lst_HitBoxes, true, (Room) => {
+            lst_NewRooms.push(Room);
+            this.AddRoom(Room);
+            Room.Bool_AddGameObjToRoom(this);
         });
-        for(var loop = 0; loop < this.LstTile_OnTiles.length;){
-            var Tile = this.LstTile_OnTiles[loop];
-            if(!Lst_Tiles.includes(Tile)){
-                if(!Tile.RemoveGameObject(this)){ //this will remove tile from this.LstTile_OnTiles
-                    this.LstTile_OnTiles.splice(loop, 1);
+        var Lst_ToRemove = null;
+        this.Set_InRooms.forEach(Room => {
+            if(!lst_NewRooms.includes(Room)){
+                if(Lst_ToRemove == null){
+                    Lst_ToRemove = [];
                 }
+                Lst_ToRemove.push(Room);
             }
-            else{
-                loop++; 
-            }
+        });
+        if(Lst_ToRemove != null){
+            Lst_ToRemove.forEach(Room => {
+                Room.RemoveObjFromRoom(this);
+                this.RemoveRoom(Room);
+            });
         }
     }
     /**
@@ -270,50 +275,33 @@ class GameObject extends BaseInstance{
             return;
         }
         //map tiles will tty to edit LstTile_OnTiles as we iterate so we don't want to iterate over LstTile_OnTiles 
-        var tempSet = [];
-        this.LstTile_OnTiles.forEach(tile => {
-            tempSet.push(tile);
+        this.Set_InRooms.forEach(Room => {
+            Room.RemoveObjFromRoom(this);
         });
-        tempSet.forEach(tile => {
-            tile.RemoveGameObject(this);
-        });
+        this.Set_InRooms.clear();
+
+        //actually pull instance from layer
         this.Layer.RemoveInstance(this);
     }
     /**
-     * @param {MapTileInstance} Tile_ToAdd 
+     * @param {RoomInstance} Room_ToAdd 
      */
-    AddTile(Tile_ToAdd){
+    AddRoom(Room_ToAdd){
         //TODO: is this to brute force
-        if(Tile_ToAdd == null
-                || this.LstTile_OnTiles.includes(Tile_ToAdd)){
+        if(Room_ToAdd == null || this.Set_InRooms.has(Room_ToAdd)){
             return;
         }
-        this.LstTile_OnTiles.push(Tile_ToAdd);
+        this.Set_InRooms.add(Room_ToAdd);
     }
     /**
-     * @param {MapTileInstance} Tile_ToAdd 
+     * @param {RoomInstance} Room_ToRemove 
      */
-    RemoveTile(Tile_ToRemove){
-        if(Tile_ToRemove == null){
+    RemoveRoom(Room_ToRemove){
+        if(Room_ToRemove == null || !this.Set_InRooms.has(Room_ToRemove)){
             return;
         }
+        this.Set_InRooms.delete(Room_ToRemove);
         //TODO: is this to brute force
-        var index = this.LstTile_OnTiles.indexOf(Tile_ToRemove);
-        if(index < 0){
-            return;
-        }
-        this.LstTile_OnTiles.splice(index, 1);
-    }
-    ClearMapTiles(){
-        if(this.LstTile_OnTiles.length <= 0){
-            return;
-        }
-        var LstTiles = this.LstTile_OnTiles;
-        this.LstTile_OnTiles = [];
-
-        LstTiles.forEach(element => {
-            element.RemoveGameObject(this);
-        });
     }
 }
 

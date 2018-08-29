@@ -208,9 +208,6 @@ class MapTileInstance extends BaseInstance {
         this.LstBoxes_BlocksShots = [];
         this.LstBoxes_BlocksVision = [];
         this.LstBoxes_BlocksMovement = [];
-
-        //gameObjects
-        this.LstObjects_GameObjects = [];
     }
     /**
      * It is assumed that MapTileInstance does not move you need re-init it each time you move it
@@ -256,47 +253,7 @@ class MapTileInstance extends BaseInstance {
     
         this.TileDef.AnimationReference.Draw(coreData, CompleteTransform, ParentAlpha, this.AnimationTime);
     }
-    /**
-     * @param {GameObject} GameObj_ToInsert 
-     */
-    AddGameObject(GameObj_ToInsert){
-        //TODO: is this to brute force
-        if(GameObj_ToInsert == null
-                || this.LstObjects_GameObjects.includes(GameObj_ToInsert)){
-            return false;
-        }
-        this.LstObjects_GameObjects.push(GameObj_ToInsert);
-        GameObj_ToInsert.AddTile(this);
-
-        return true;
-    }
-    /**
-     * @param {GameObject} GameObj_ToInsert 
-     */
-    RemoveGameObject(GameObj_ToRemove){
-        if(GameObj_ToRemove == null){
-            return false;
-        }
-        //TODO: is this to brute force
-        var index = this.LstObjects_GameObjects.indexOf(GameObj_ToRemove);
-        if(index < 0){
-            return false;
-        }
-        this.LstObjects_GameObjects.splice(index, 1);
-        GameObj_ToRemove.RemoveTile(this);
-
-        return true;
-
-        //TODO: update path finding information
-    }
     ClearHitBoxes(){
-        if(this.LstObjects_GameObjects.length <= 0){
-            return;
-        }
-        this.LstObjects_GameObjects.forEach(element => {
-            element.RemoveTile();
-        });
-        this.LstObjects_GameObjects = [];
         this.LstBoxes_BlocksShots = [];
         this.LstBoxes_BlocksVision = [];
         this.LstBoxes_BlocksMovement = [];

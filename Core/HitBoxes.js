@@ -166,6 +166,23 @@ class PolygonalHitBox {
      * @param {Vector2D} a1 
      * @param {Vector2D} a2 
      */
+    Bool_IsLineWithinBounds(a1, a2){
+        if(a1 == null || a2 == null || this.LstVec_Points.length < 3){
+            return false;
+        }
+        var MinX = Math.min(a1.x, a2.x);
+        var MinY = Math.min(a1.y, a2.y);
+        var MaxX = Math.max(a1.x, a2.x);
+        var MaxY = Math.max(a1.y, a2.y);
+        var CenterX = MinX + ((MaxX - MinX) / 2);
+        var CenterY = MinY + ((MaxY - MinY) / 2);
+        if(CenterX - this.Vector_Center.x > ((MaxX - MinX) + this.Vector_Size.x) / 2
+                || CenterY - this.Vector_Center.y > ((MaxY - MinY) + this.Vector_Size.y) / 2){
+            
+            return false;     
+        }
+        return true;
+    }
     Bool_IsLineInBox(a1, a2){
         if(a1 == null || a2 == null){
             return false;
@@ -184,22 +201,12 @@ class PolygonalHitBox {
      * @param {out_fathestIntersection} a2 
      */
     Vector_GetClosestIntersection(a1, a2, out_fathestIntersection = null){
-        if(a1 == null || a2 == null || this.LstVec_Points.length < 3){
-            return null;
-        }
         if(out_fathestIntersection != null){
             out_fathestIntersection.SetToZero();
         }
-        //idoit check is a even within the boundsw of this box
-        var MinX = Math.min(a1.x, a2.x);
-        var MinY = Math.min(a1.y, a2.y);
-        var MaxX = Math.max(a1.x, a2.x);
-        var MaxY = Math.max(a1.y, a2.y);
-        var CenterX = MinX + ((MaxX - MinX) / 2);
-        var CenterY = MinY + ((MaxY - MinY) / 2);
-        if(CenterX - this.Vector_Center.x > ((MaxX - MinX) + this.Vector_Size.x) / 2
-                || CenterY - this.Vector_Center.y > ((MaxY - MinY) + this.Vector_Size.y) / 2){
-            return null;     
+        //idiot check is a even within the boundsw of this box
+        if(!this.Bool_IsLineWithinBounds(a1, a2)){
+            return null;
         }
         var RetVal = null;
         var OldManhattan = 0;
@@ -207,8 +214,8 @@ class PolygonalHitBox {
 
         var longestIntersect = null;
         var longestManhattan = 0;
-
-        for(var loop = 0; loop < this.LstVec_Points.length; loop++){
+        var foundIntersections = 0; //There can be only 2 intersects in a convex shape
+        for(var loop = 0; foundIntersections < 2 && loop < this.LstVec_Points.length; loop++){
             var b1 = this.LstVec_Points[loop];
             var b2 = null;
             if(loop + 1 < this.LstVec_Points.length){
@@ -229,7 +236,8 @@ class PolygonalHitBox {
                 if(longestIntersect == null || TestLength.Num_GetManhattan() > longestManhattan){
                     longestManhattan = TestLength.Num_GetManhattan();
                     longestIntersect = Intersect;
-                }       
+                } 
+                foundIntersections++;      
             }
         }
         if(out_fathestIntersection != null){
@@ -372,6 +380,24 @@ function Bool_IsLineInAnyBoxes(Vector_Start, Vector_End, Lst_Boxes){
     }
     return false;
 }
+
+/**
+ * @param {array} Lst_Boxes1 
+ * @param {array} Lst_Boxes2 
+ */
+function Bool_GetIsAnyWithinBounds(Lst_Boxes1, Lst_Boxes2){
+    if(!Array.isArray(Lst_Boxes1) || !Array.isArray(Lst_Boxes2)){
+        return false;
+    }
+    for(var loop1 = 0; loop1 < Lst_Boxes1.length; loop1++){
+        for(var loop2 = 0; loop2 < Lst_Boxes2.length; loop2++){
+            if(Bool_GetIsWithinBounds(Lst_Boxes1[loop1], Lst_Boxes2[loop2])){
+                return true;
+            }
+        }
+    }
+}
+
 /**
  * @param {array} Lst_Boxes1 
  * @param {array} Lst_Boxes2 
@@ -388,6 +414,21 @@ function Bool_AreAnyColliding(Lst_Boxes1, Lst_Boxes2){
         }
     }
     return false;
+}
+
+function Bool_GetIsWithinBounds(Box1, Box2){
+    if(Box1 == null
+            || Box2 == null 
+            || Box1.LstVec_Points.length < 3
+            || Box2.LstVec_Points.length < 3){
+        return false;
+    }
+    //check if boxes are even remotly close
+    if(Math.abs(Box1.Vector_Center.x - Box2.Vector_Center.x) > ((Box1.Vector_Size.x + Box2.Vector_Size.x) / 2)
+            || Math.abs(Box1.Vector_Center.y - Box2.Vector_Center.y) > ((Box1.Vector_Size.y + Box2.Vector_Size.y) / 2)){
+        return false
+    }
+    return true;
 }
 
 /**
@@ -411,8 +452,7 @@ function Bool_GetCollisionData(Box1, Box2, Vector_1_Normal = null, Vector_2_Norm
         return false;
     }
     //check if boxes are even remotly close
-    if(Math.abs(Box1.Vector_Center.x - Box2.Vector_Center.x) > ((Box1.Vector_Size.x + Box2.Vector_Size.x) / 2)
-            || Math.abs(Box1.Vector_Center.y - Box2.Vector_Center.y) > ((Box1.Vector_Size.y + Box2.Vector_Size.y) / 2)){
+    if(!Bool_GetIsWithinBounds(Box1, Box2)){
         return false
     }
     //if both boxes are simple and we don't need to find any

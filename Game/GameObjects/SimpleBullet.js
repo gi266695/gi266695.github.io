@@ -73,16 +73,17 @@ class SimpleBullet extends GameObject{
                         this.RemoveSelfFromLayer();
                         return;
                     }
-                    var DamageTargets = [];
-                    Bool_IsBulletHitting(this.Layer.Lst_ActiveLevels, this, this.LstBoxes_GetHitBoxesInLocalSpace("explodeHit"), DamageTargets);
-                    DamageTargets.forEach((target) => {
-                        target.TakeDamage();
-                    });
+                    var DamageTargets = Lst_GetDamageTargets(this.Layer.Lst_ActiveLevels, this, this.LstBoxes_GetHitBoxesInLocalSpace("explodeHit"));
+                    if(DamageTargets != null){
+                        DamageTargets.forEach((target) => {
+                            target.TakeDamage();
+                        });
+                    }
                 }
                 break;
         }
 
-        //this.UpdateMapTiles();
+        this.UpdateMapInforation();
     }
     /**
      * @param {GameObject} Obj_Other 

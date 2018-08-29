@@ -97,7 +97,7 @@ class PlayerObject extends GameObject{
                     this.Vector_Center.AddToSelf(Solution);
                 }
             }
-            this.UpdateMapTiles();
+            this.UpdateMapInforation();
 
             switch(this.m_State){
                 case Enum_PlayerState.PLAYER_IDLE:
