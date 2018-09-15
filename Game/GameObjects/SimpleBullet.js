@@ -36,6 +36,7 @@ class SimpleBullet extends GameObject{
     static LstStr_GetDependecies(){
         return [
             SimpleBullet_SpritePath
+            //"Data/Structures/Splash/explode_small.wav"
         ];
     }
     /**
@@ -62,6 +63,7 @@ class SimpleBullet extends GameObject{
                 Move.MultiplySelf(DeltaTime);
                 this.Vector_Center.AddToSelf(Move);
                 if(Bool_IsBulletHitting(this.Layer.Lst_ActiveLevels, this, this.LstBoxes_GetHitBoxesInLocalSpace("idleHit"))){
+                    //coreData.AudioManager.Instance_PlaySound("Data/Structures/Splash/explode_small.wav");
                     this.SetState(Enum_BulletStates.BULLET_EXPLODING);
                     return;
                 }
@@ -85,6 +87,7 @@ class SimpleBullet extends GameObject{
 
         this.UpdateMapInforation();
     }
+    
     /**
      * @param {GameObject} Obj_Other 
      */

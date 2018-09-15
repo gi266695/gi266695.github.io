@@ -22,14 +22,15 @@ class SpriteAsset extends BaseAsset {
         this.Lst_Sprites = [];
     }
 
-    SpriteInstance_GetNewInstance(){
+    SpriteInstance_GetNewInstance(Instance_Parent = null){
         var retVal = new SpriteInstance();
         retVal.SpriteAsset = this;
+        retVal.Instance_Parent = Instance_Parent;
         retVal.LocalTransform.Assign(this.Transform);
         retVal.LocalAlpha = this.Alpha;
 
         this.Lst_Sprites.forEach(element => {
-            var newInstance = element.SpriteInstance_GetNewInstance();
+            var newInstance = element.SpriteInstance_GetNewInstance(retVal);
             newInstance.SetAnimation('idle');
             newInstance.SetAnimationPercent(Math.random());
             retVal.lst_Sprites.push(newInstance);
@@ -214,16 +215,22 @@ class SpriteInstance extends BaseInstance {
         this.Clear();
     }
     Clear(){
+        //things to mess with
+        this.LocalTransform = new Matrix3X3();
+        this.LocalAlpha = 1.0;
+        this.Num_AudioChannelID = -1;
+
+        //for internal use
         this.SpriteAsset = null;
         this.CurrentAnim = null;
 
         this.AnimationTime = 0.0;
         this.AnimationSpeed = 1.0;
 
-        this.LocalTransform = new Matrix3X3();
-        this.LocalAlpha = 1.0;
-
+        this.Instance_Parent = null;
         this.lst_Sprites = [];
+
+        this.Lst_TimedSounds = [];
     }
 
     /**
@@ -234,19 +241,27 @@ class SpriteInstance extends BaseInstance {
         if(this.CurrentAnim == null){
             return;
         }
-        
+        //tick animatoin
         this.AnimationTime += (DeltaTime * this.AnimationSpeed);
 
+        //tick sub sprites
         this.lst_Sprites.forEach(element => {
             element.Tick(coreData, DeltaTime);
         });
-        /*var TotatTime = this.Num_GetTotalAnimationMiliseconds();
-        if(this.AnimationTime < 0){
-            this.AnimationTime = TotatTime - this.AnimationTime;
+        //tick sounds
+        if(this.Lst_TimedSounds.length > 0){
+            var Vector_RetVal = this.Vector_GetAudioCenter();
+            var Bool_AllDone = true;
+            this.Lst_TimedSounds.forEach(element => {
+                element.TickInstance(coreData, DeltaTime, Vector_RetVal);
+                if(Bool_AllDone && !element.Bool_IsDone()){
+                    Bool_AllDone = false;
+                }
+            });
+            if(Bool_AllDone){
+                this.Lst_TimedSounds = [];
+            }
         }
-        if(this.AnimationTime > TotatTime && TotatTime > 0){
-            this.AnimationTime = this.AnimationTime % TotatTime;
-        }*/
     }
 
     /**
@@ -299,7 +314,21 @@ class SpriteInstance extends BaseInstance {
             context.restore();
         }
     }
-    
+    Vector_GetAudioCenter() {
+        if(this.Instance_Parent != null){
+            return this.Instance_Parent.Vector_GetAudioCenter();
+        }
+        if(this.LocalTransform != null){
+            return this.LocalTransform.Vector_MultiplyVector(Vector_Zero);
+        }
+        return null;
+    }
+    GameLayer_GetAudioLayer() {
+        if(this.Instance_Parent != null){
+            return this.Instance_Parent.GameLayer_GetAudioLayer();
+        }
+        return this.Layer;
+    }  
     /**
      * @param {String} Name - animation name
      * @param {Number} Speed - animation speed
@@ -308,6 +337,9 @@ class SpriteInstance extends BaseInstance {
         if(this.SpriteAsset == null){
             return null;
         }
+        //clear old sounds
+        this.StopAllSounds();
+
         this.AnimationSpeed = NewSpeed;
         this.AnimationTime = 0.0;
         this.CurrentAnim = this.SpriteAsset.Animation_GetAnimationByName(NewName);
@@ -316,6 +348,10 @@ class SpriteInstance extends BaseInstance {
         }
         if(this.AnimationSpeed < 0){
             this.AnimationTime = this.Num_GetTotalAnimationMiliseconds();
+        }
+        else{
+            this.Lst_TimedSounds = this.CurrentAnim.LstInstances_GetTimedAudio(this.Num_AudioChannelID, this.GameLayer_GetAudioLayer(),  this.Lst_TimedSounds);
+            //TODO start sounds that start at zero
         }
     }
 
@@ -332,6 +368,15 @@ class SpriteInstance extends BaseInstance {
         }
         else{
             this.AnimationTime = totalTime * Percent;
+        }
+    }
+
+    StopAllSounds(){
+        if(this.Lst_TimedSounds.length > 0){
+            this.Lst_TimedSounds.forEach(element => {
+                element.StopSound();
+            });
+            this.Lst_TimedSounds = [];
         }
     }
 

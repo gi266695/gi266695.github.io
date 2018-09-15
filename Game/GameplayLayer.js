@@ -29,7 +29,6 @@ class GameplayLayer extends GameLayer {
     }
     Clear(){
         super.Clear();
-        this.bool_bIsPaused = false;
         this.bool_loadingRoom = false;
         this.Lst_ActiveLevels = [];
         this.Player = null;
@@ -71,8 +70,7 @@ class GameplayLayer extends GameLayer {
         if(DeltaTime >= 0.1){
             DeltaTime = 0.1;
         }
-        if(!this.bool_bIsPaused && coreData.InputManager.Bool_HasFocus){
-            super.Tick(coreData, DeltaTime);
-        }
+        this.bool_IsPaused = !coreData.InputManager.Bool_HasFocus;   
+        super.Tick(coreData, DeltaTime);
     }
 }

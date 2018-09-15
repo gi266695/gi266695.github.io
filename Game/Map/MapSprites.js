@@ -237,7 +237,7 @@ class MapSpriteDef {
         var newInstance = new MapSpriteInstance();
         newInstance.MapSprite_def = this;
         newInstance.Matrix = Matrix;
-        newInstance.SpriteInstance = this.Sprite_def.SpriteInstance_GetNewInstance();
+        newInstance.SpriteInstance = this.Sprite_def.SpriteInstance_GetNewInstance(newInstance);
         if(this.Str_BlocksShotsID != null){
             newInstance.LstHitBox_BlocksShots = newInstance.LstBoxes_GetHitBoxesInLocalSpace(this.Str_BlocksShotsID, null);
         }
@@ -288,6 +288,14 @@ class MapSpriteInstance extends BaseInstance {
         }
         Transform.MultiplyMatrix(this.Matrix);
         this.SpriteInstance.Draw(coreData, Transform, ParentAlpha);
+    }
+    StopAllSounds(){
+        if(this.SpriteInstance != null){
+            this.SpriteInstance.StopAllSounds();
+        }
+    }
+    Vector_GetAudioCenter() {
+        return this.Matrix.Vector_MultiplyVector(Vector_Zero);
     }
     LstBoxes_GetUniqueBoxes(){
         var retVal = [];

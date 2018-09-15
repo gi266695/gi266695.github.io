@@ -235,6 +235,8 @@ class MapTileInstance extends BaseInstance {
             return;
         }
         this.AnimationTime += DeltaTime;
+
+        //map tiles do not play sounds
     }
     /**
      * @param {Matrix3X3} ParentTranform 
@@ -252,6 +254,9 @@ class MapTileInstance extends BaseInstance {
         CompleteTransform.TranslateSelf(this.Vector_Center.x, this.Vector_Center.y);
     
         this.TileDef.AnimationReference.Draw(coreData, CompleteTransform, ParentAlpha, this.AnimationTime);
+    }  
+    Vector_GetAudioCenter() {
+        return this.Vector_Center;
     }
     ClearHitBoxes(){
         this.LstBoxes_BlocksShots = [];

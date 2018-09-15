@@ -252,13 +252,14 @@ class LevelInstance {
         //pull map sprites
         this.LstInstances_MapSprites.forEach(sprite => {
             if(sprite != null){
+                sprite.StopAllSounds();
                 this.Layer.RemoveInstance(sprite);
             }
         });
 
         //pull game objects
         this.LstInstances_GameObjects.forEach(obj => {
-            this.Layer.RemoveInstance(obj);
+            obj.RemoveSelfFromLayer();
         });
 
         this.Layer = null;

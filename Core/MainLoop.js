@@ -9,16 +9,20 @@ class CoreData {
     Clear(){
         this.WindowObj = null;
         this.DocumentObj = null;
+        this.AudioContext = null;
         this.ContainerElement = null;
 
         this.requestAnimationFrame_ID = null;
         this.RootElement = null;
         this.CanvasElement = null;
+
+        
         this.Context2D = null;
 
         this.AssetLibrary = null;
         this.LayerStack = null;
         this.InputManager = null;
+        this.AudioManager = null;
 
         this.TotalElapsedSeconds = 0;
 
@@ -68,6 +72,7 @@ function Core_Init(WindowObj, DocumentObj, ContainerElement, CorePath, TickCallB
     var coreData = new CoreData();
     coreData.WindowObj = WindowObj;
     coreData.DocumentObj = DocumentObj;
+    coreData.AudioContext = new (WindowObj.AudioContext || WindowObj.webkitAudioContext)();
     coreData.ContainerElement = ContainerElement;
 
     //create root
@@ -97,10 +102,10 @@ function Core_Init(WindowObj, DocumentObj, ContainerElement, CorePath, TickCallB
 
     //This is the include order if your thing is in core and it is undefined this isWhy
     lstCoreScripts = [(CorePath + "/MathStuff.js")
-                        , "/testing123.js"
                         , (CorePath + "/HitBoxes.js")
                         , (CorePath + "/Assets/BaseAsset.js")
                         , (CorePath + "/LayerStack.js")
+                        , (CorePath + "/AudioManager.js")
                         , (CorePath + "/Assets/SpriteSheetAsset.js")
                         , (CorePath + "/Assets/SpriteAsset.js")
                         , (CorePath + "/Assets/AnimationAsset.js")
@@ -112,8 +117,11 @@ function Core_Init(WindowObj, DocumentObj, ContainerElement, CorePath, TickCallB
     function Core_AfterScriptLoad(){
         coreData.AssetLibrary = new AssetLibrary();
         coreData.LayerStack = new LayerStack();   
+        coreData.AudioManager = new AudioManager();
         coreData.InputManager = new InputManager();
+       
         coreData.InputManager.SetUpCallbacks(coreData);
+        coreData.AssetLibrary.SetDependencies(coreData);
     }
 
     function Core_Tick(TotalElapsedTime){

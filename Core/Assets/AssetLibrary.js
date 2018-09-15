@@ -3,12 +3,24 @@ class AssetLibrary {
         this.Clear();
     }
     Clear(){
+        this.AudioContext = null;
+
         this.SpriteSheets = {};
         this.Sprites = {};
         this.Animations = {};
         this.Images = {};
+        this.Audios = {};
 
         this.Dct_LoadsInProgress = {};
+    }
+    /**
+     * 
+     * @param {CoreData} coreData 
+     */
+    SetDependencies(coreData){
+        if(coreData != null){
+            this.AudioContext = coreData.AudioContext;
+        }
     }
     /**
      * will attempt to load everything from the paths given returns success on complete
@@ -24,6 +36,7 @@ class AssetLibrary {
         }
 
         var lstStr_ImageLoads = [];
+        var lstStr_AudioLoads = [];
         var LstStr_SheetLoads = [];
         var LstStr_AnimLoads = [];
         var LstStr_SpriteLoads = [];
@@ -32,10 +45,14 @@ class AssetLibrary {
         LstStr_Assets.forEach(path => {
             path = path.toLowerCase();
             //image
-            if((path.includes('png') || path.includes('jpg'))
+            if((path.includes('.png') || path.includes('.jpg'))
                     && !lstStr_ImageLoads.includes(path)){
 
                 lstStr_ImageLoads.push(path);
+            }
+            //Audio (we really only support .wav becuase shannanagans) "https://en.wikipedia.org/wiki/HTML5_audio"
+            if((path.includes('.wav') || path.includes('.flac')) && !lstStr_AudioLoads.includes(path)){
+                lstStr_AudioLoads.push(path);
             }
             //spriteSheet
             if(path.includes('_sheet') && !LstStr_SheetLoads.includes(path)){
@@ -51,6 +68,7 @@ class AssetLibrary {
             }
         });
         var totalLoads = lstStr_ImageLoads.length
+                        + lstStr_AudioLoads.length
                         + LstStr_SheetLoads.length
                         + LstStr_AnimLoads.length
                         + LstStr_SpriteLoads.length;
@@ -62,6 +80,9 @@ class AssetLibrary {
 
         lstStr_ImageLoads.forEach(path => {
             this.LoadImage(path, Local_Isloaded);
+        });
+        lstStr_AudioLoads.forEach((path) => {
+            this.LoadAudioBuffer(path, Local_Isloaded);
         });
         LstStr_SheetLoads.forEach(path => {
             this.LoadSpriteSheet(path, Local_Isloaded);
@@ -111,12 +132,12 @@ class AssetLibrary {
         return this.GetAsset(this.Sprites, defPath);
     }
 
-    SpriteInstance_GetSpriteInstance(defPath){
+    SpriteInstance_GetSpriteInstance(defPath, Instance_Parent){
         var Def = this.GetSpriteDef(defPath);
         if(Def == null){
             return null;
         }
-        return Def.SpriteInstance_GetNewInstance();
+        return Def.SpriteInstance_GetNewInstance(Instance_Parent);
     }
 
     //-------------------------------------------------------------------------
@@ -179,7 +200,11 @@ class AssetLibrary {
      * @param {function} IsLoaded - IsLoaded(str_Path, bool_Success)
      */
     LoadImage(defPath, IsLoaded){
+        if(IsLoaded == null){
+            return;
+        }
         if(defPath == null){
+            IsLoaded(defPath, false);
             return;
         }
         var newImage = this.GetImage(defPath);
@@ -199,9 +224,9 @@ class AssetLibrary {
         var self = this;
 
         newImage = new Image();
-        newImage.src = defPath;
         newImage.onload = Local_IsloadedSuccess;
         newImage.onerror = Local_IsloadedFail;
+        newImage.src = defPath;
 
         function Local_IsloadedFail(){
             self.ReportLoadComplete(defPath, false);
@@ -229,7 +254,106 @@ class AssetLibrary {
      */
     GetImage(defPath){
         return this.GetAsset(this.Images, defPath);
-    }    
+    }   
+    //-------------------------------------------------------------------------
+    //audio
+    /**
+     * @param {String} defPath 
+     * @param {function} IsLoaded - IsLoaded(str_Path, bool_Success)
+     */
+    LoadAudioBuffer(defPath, IsLoaded){
+        if(IsLoaded == null){
+            return;
+        }
+        if(defPath == null || this.AudioContext == null){
+            IsLoaded(defPath, false);
+            return;
+        }
+        var newAudio = this.GetAudioBuffer(defPath);
+        if(newAudio != null){
+            IsLoaded(defPath, true);
+            return;
+        }
+        //if someone is already trying to load this then we don't have to
+        if(this.Bool_IsLoadInProgress(defPath)){
+            this.Bool_ReportLoadInProgress(defPath, IsLoaded);
+            return;
+        }
+        if(!this.Bool_ReportLoadInProgress(defPath, IsLoaded)){
+            return;
+        }
+        var self = this;
+        defPath = defPath.toLowerCase();
+        //https://stackoverflow.com/questions/30433667/cloning-audio-source-without-having-to-download-it-again
+        //https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
+        /*newAudio = new Audio();
+        newAudio.autoplay = false;
+        newAudio.oncanplaythrough = Local_IsLoaded;
+        newAudio.onerror = Local_LoadError;
+        newAudio.src = defPath;
+        newAudio.load();
+
+        function Local_LoadError(e){
+            self.ReportLoadComplete(defPath, false);
+        }
+        function Local_IsLoaded(){
+            self.AddAudio(defPath, this);
+            self.ReportLoadComplete(defPath, true);
+        }
+        return;*/
+
+        var xhttp = new XMLHttpRequest();
+        try{
+            xhttp.onreadystatechange = Local_IsLoaded;
+            xhttp.open("GET", defPath, true);
+            xhttp.responseType = 'arraybuffer';
+            xhttp.send(null);
+        }
+        catch(exception){
+            console.log("LoadAudio.Load(): Exception [" + exception + "] " + defPath);
+            this.ReportLoadComplete(defPath, false);
+        }
+        function Local_IsLoaded(){
+            if(xhttp.readyState === 4){
+                if (xhttp.status === 200) {
+                     try{
+                        self.AudioContext.decodeAudioData(this.response
+                            //Decode success
+                            , (buffer) => {
+                                self.AddAudioBuffer(defPath, buffer);
+                                self.ReportLoadComplete(defPath, true);
+                            }
+                            //Decode faliure
+                            , (error) => {
+                                console.log("LoadAudio.Load(): Decode Failed error [" + error + "] " + defPath);
+                                self.ReportLoadComplete(defPath, false);
+                            } )                    
+                     }
+                     catch(exception){
+                        console.log("LoadAudio.Load(): Exception [" + exception + "] " + defPath);
+                        self.ReportLoadComplete(defPath, false);
+                    }
+                }
+                else{
+                    console.log("LoadAudio.Load(): Failed \"" + defPath + "\" [" + xhttp.readyState + ", " +  xhttp.status + ", " + xhttp.statusText + "]"); 
+                    self.ReportLoadComplete(defPath, false);
+                }
+            }
+        }
+    }
+    /**
+     * @param {string} defPath 
+     * @param {Audio} newDef 
+     */
+    AddAudioBuffer(defPath, newDef){
+        this.AddAsset(this.Audios, defPath, newDef);   
+    }
+    /**
+     * @param {string} defPath 
+     */
+    GetAudioBuffer(defPath){
+        return this.GetAsset(this.Audios, defPath);
+    } 
     //-------------------------------------------------------------------------
     //For internal use
     /**
@@ -255,10 +379,9 @@ class AssetLibrary {
     }
     /**
      * @param {Object} dct_Library 
-     * @param {string} str_Path 
-     * @param {BaseAsset} Asset 
+     * @param {string} str_Path  
      */
-    GetAsset(dct_Library, str_Path, Asset){
+    GetAsset(dct_Library, str_Path){
         if(str_Path == null
                 || str_Path.length <= 0
                 || dct_Library == null){

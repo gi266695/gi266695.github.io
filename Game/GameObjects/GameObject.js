@@ -66,6 +66,9 @@ class GameObject extends BaseInstance{
             this.Sprite.Draw(coreData, CompleteTransform, ParentAlpha);
         }
     }
+    Vector_GetAudioCenter(){
+        return this.Matrix_GetTransform().Vector_MultiplyVector(Vector_Zero);
+    }
     bool_LoadFromFileData(jsonObject){
         if(jsonObject == null
                 || typeof jsonObject !== 'object'
@@ -109,7 +112,7 @@ class GameObject extends BaseInstance{
             var lststr_Assets = [this.Str_AssetPaths];
             coreData.AssetLibrary.LoadAssets(lststr_Assets, ()=> {
                 this.LoadState = Enum_GameObjectLoadState.LOAD_STATE_FINISHED;
-                this.Sprite = coreData.AssetLibrary.SpriteInstance_GetSpriteInstance(lststr_Assets[0]);
+                this.Sprite = coreData.AssetLibrary.SpriteInstance_GetSpriteInstance(lststr_Assets[0], this);
             });
 
             return true;
@@ -274,6 +277,10 @@ class GameObject extends BaseInstance{
         if(this.Layer == null){
             return;
         }
+        if(this.Sprite != null){
+            this.Sprite.StopAllSounds();
+        }
+
         //map tiles will tty to edit LstTile_OnTiles as we iterate so we don't want to iterate over LstTile_OnTiles 
         this.Set_InRooms.forEach(Room => {
             Room.RemoveObjFromRoom(this);
@@ -307,8 +314,9 @@ class GameObject extends BaseInstance{
 
 function LstStr_GetGameObjectDependencies(){
     var retVal = [];
-    retVal.push.apply(retVal. PlayerObject.LstStr_GetDependecies());
-    retVal.push.apply(retVal. SimpleTurret.LstStr_GetDependecies());
+    retVal.push.apply(retVal, PlayerObject.LstStr_GetDependecies());
+    retVal.push.apply(retVal, SimpleTurret.LstStr_GetDependecies());
+    retVal.push.apply(retVal, SimpleBullet.LstStr_GetDependecies());
     return retVal;
 }
 /**

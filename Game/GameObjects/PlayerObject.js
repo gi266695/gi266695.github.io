@@ -97,6 +97,7 @@ class PlayerObject extends GameObject{
                     this.Vector_Center.AddToSelf(Solution);
                 }
             }
+            coreData.AudioManager.Vector_ListenerPosition =  this.Vector_Center;
             this.UpdateMapInforation();
 
             switch(this.m_State){

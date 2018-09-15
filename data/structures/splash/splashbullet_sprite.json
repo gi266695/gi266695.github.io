@@ -68,7 +68,15 @@
 				"Columns": 4,
 				"Remainder": 3,
 				"Loop": false
-			}]
+			}],
+			"Sounds": [{
+				"SoundPath": "Data/Structures/Splash/explode_small.wav",
+				"Volume": 1,
+				"Loop": false,
+				"PlayAtPosition": false,
+				"FireAndFoget": true,
+				"WaitTime": 0
+			}]	
 		}]
 	}],
 	"HitBoxes": [{

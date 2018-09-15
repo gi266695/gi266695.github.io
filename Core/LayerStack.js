@@ -125,6 +125,7 @@ class GameLayer {
         //your's to fuck with
         this.Matrix_CameraTransform = new Matrix3X3();
         this.Num_Alpha = 1;
+        this.bool_IsPaused = false;
     }
     /**
      * 
@@ -214,7 +215,10 @@ class GameLayer {
      * @param {Number} DeltaTime 
      * @param {CoreData} coreData 
      */
-    Tick(coreData, DeltaTime){   
+    Tick(coreData, DeltaTime){
+        if(this.bool_IsPaused){
+            return;
+        }   
         this.Lst_Sets.forEach(element => {
             element.Tick(coreData, DeltaTime);
         });
@@ -338,4 +342,7 @@ class BaseInstance{
      * @param {Number} ParentAlpha 
      */
     Draw(coreData, ParentTranform, ParentAlpha){ ; }
+
+    Vector_GetAudioCenter() { return null; }
+    GameLayer_GetAudioLayer() { return this.Layer; }
 }

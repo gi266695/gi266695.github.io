@@ -77,6 +77,18 @@ class AnimationAsset extends BaseAsset {
             }
         });
     }
+    /**
+     * @param {CoreData} coreData 
+     * @param {number} Num_ChannelID 
+     * @param {GameLayer} Layer_Owner 
+     * @param {array} Lst_ToFill 
+     */
+    LstInstances_GetTimedAudio(Num_ChannelID, Layer_Owner, Lst_ToFill = null){
+        this.lst_Steps.forEach(element => {
+            Lst_ToFill = element.LstInstances_GetTimedAudio(Num_ChannelID, Layer_Owner, Lst_ToFill);
+        }); 
+        return Lst_ToFill;
+    }
     Num_GetTotalAnimationMiliseconds(){
         var retVal = 0;
         
@@ -106,6 +118,8 @@ class AnimationStep extends BaseAsset {
         this.Lst_MatrixAnimations = [];     //matrix animations
         this.Lst_AlphaAnimations = [];      //alpha animations
 
+        this.Lst_AudioSpawns = [];          //Sounds this animation plays
+
         this.LstStr_ReferencedAnimations = []; //animations referenced in def    
         this.Lst_Animations = [];           //animation pointers
 
@@ -129,6 +143,7 @@ class AnimationStep extends BaseAsset {
             "SpiteSheets": [{SpriteSheetAsset},{SpriteSheetAsset}],
             "MatrixAnimations": [{MatrixAnimations},{MatrixAnimations}],
             "AlphaAnimations": [{NumericAnimation},{NumericAnimation}],
+            "Sounds": [{AudioSpawn},{AudioSpawn}]
             "Animations":["...","..."],
             "StartTime" = 0,
             "EndTime" = 0
@@ -169,6 +184,15 @@ class AnimationStep extends BaseAsset {
                 }
             });
         }
+        //sounds
+        if(Array.isArray(jsonObject.Sounds)){
+            jsonObject.Sounds.forEach(element => {
+                var newSound = new AudioSpawn();
+                if(newSound.bool_LoadFromFileData(String_Path, element)){
+                    this.Lst_AudioSpawns.push(newSound);
+                }
+            });
+        }
         //steps
         if(Array.isArray(jsonObject.Animations)){
             jsonObject.Animations.forEach(element => {
@@ -193,6 +217,9 @@ class AnimationStep extends BaseAsset {
         var retVal = [];
         this.LstStr_ReferencedSheets.forEach(element => {
             retVal.push(element);
+        });
+        this.Lst_AudioSpawns.forEach(element => {
+            retVal.push(element.Str_Path);
         });
         this.Lst_LocalSheets.forEach(elementSheet => {
             elementSheet.LstStr_GetDependencies().forEach(elementStr => {
@@ -268,6 +295,26 @@ class AnimationStep extends BaseAsset {
         this.Lst_SpriteSheets.forEach(element => {
             element.Draw(coreData, CompleteTransform, CompleteAlpha, AnimationTime);
         });       
+    }
+    /**
+     * @param {number} Num_ChannelID 
+     * @param {GameLayer} Layer_Owner 
+     * @param {array} Lst_ToFill 
+     */
+    LstInstances_GetTimedAudio(Num_ChannelID, Layer_Owner, Lst_ToFill = null){
+        this.Lst_AudioSpawns.forEach(element => {
+            var NewInstance = element.TimedInstance_CreateInstance(Num_ChannelID, Layer_Owner, Lst_ToFill);
+            if(NewInstance != null){
+                if(Lst_ToFill == null){
+                    Lst_ToFill = [];
+                }
+                Lst_ToFill.push(NewInstance);
+            }
+        });    
+        this.Lst_Animations.forEach(element => {
+            Lst_ToFill = element.LstInstances_GetTimedAudio(Num_ChannelID, Layer_Owner, Lst_ToFill);
+        }); 
+        return Lst_ToFill;
     }
     Num_GetTotalAnimationMiliseconds(){
         if(this.Float_EndTime >= 0){

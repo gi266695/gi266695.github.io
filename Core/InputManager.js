@@ -202,6 +202,8 @@ class InputManager{
             //clear state we don't know what these are anymore
             self.Set_MouseButtonsDown.clear();
             self.Set_KeyboardButtonsDown.clear();
+
+            console.log("InputManager [coreData.WindowObj.onfocus] Focus Gained");
         }
         //focus lost
         coreData.WindowObj.onblur = () => {
@@ -210,6 +212,8 @@ class InputManager{
             //clear state we don't know what these are anymore
             self.Set_MouseButtonsDown.clear();
             self.Set_KeyboardButtonsDown.clear();
+
+            console.log("InputManager [coreData.WindowObj.onblur] Focus Lost");
         }
     }
 }
