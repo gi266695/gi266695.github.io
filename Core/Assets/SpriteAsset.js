@@ -366,8 +366,12 @@ class SpriteInstance extends BaseInstance {
         if(totalTime <= 0){
             this.AnimationTime = 0;
         }
-        else{
+        else {
             this.AnimationTime = totalTime * Percent;
+        }
+        if(this.CurrentAnim != null && this.AnimationTime == 0){
+            this.StopAllSounds();
+            this.Lst_TimedSounds = this.CurrentAnim.LstInstances_GetTimedAudio(this.Num_AudioChannelID, this.GameLayer_GetAudioLayer(),  this.Lst_TimedSounds);
         }
     }
 

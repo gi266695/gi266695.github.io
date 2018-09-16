@@ -47,17 +47,28 @@
 
             Core_LoadScripts(coreData, lstGameScripts, () => {
                 coreData.AssetLibrary = new GameAssetLibrary();
-                
-                
-                gameplayLayer = new GameplayLayer();
-                coreData.LayerStack.AddLayer(gameplayLayer, 1);
+                coreData.AssetLibrary.SetDependencies(coreData);
+                coreData.AssetLibrary.LoadAssets(LstStr_GetGameObjectDependencies(), ()=> {
+                    
+                    gameplayLayer = new GameplayLayer();
+                    coreData.LayerStack.AddLayer(gameplayLayer, 1);
+                });
             });
+            var DefaultChannel = coreData.AudioManager.Chanel_GetChannel(-1, true);
+            DefaultChannel.Num_DefualtMinBeforeDropoff = 10;
+            DefaultChannel.Num_DefualtDropOffRange = 10;
         }
         //enforce aspect ratio (16/9)
+        var MaxHeight = window.innerHeight;
+
         var style = coreData.WindowObj.getComputedStyle(sourceWindow, null);
         var Num_Width = parseInt(style.width);
-        sourceWindow.style.height = (Num_Width * (9/16)) + "px";
-        //TODO check to see if we have enough Vertical screen space
+        var Num_Height = Num_Width * (9/16);
+        if(Num_Height > MaxHeight){
+            Num_Height = MaxHeight;        
+        }
+
+        sourceWindow.style.height = Num_Height + "px";
 
         //scale up/down screen based on size
         var Scale = 1;
@@ -67,8 +78,7 @@
         coreData.LayerStack.GlobalTransform.SetToScale(Scale, Scale);
 
         //tick layer stack
-        coreData.LayerStack.Tick(coreData, DeltaTime);
-        coreData.LayerStack.Draw(coreData);
+        coreData.TickDraw(DeltaTime);
 
         if(MinFrameRate == null || MinFrameRate > DeltaTime){
             MinFrameRate = DeltaTime;
@@ -79,25 +89,31 @@
         FrameTime.innerHTML = DeltaTime + "<br>Min: " + MinFrameRate + "<br>Max:" + MaxFrameRate + "<br>";
     });
     //show hitboxes
-    inputCheckBox_ShowHitBoxes.onclick = () => {
-        if(LastCoreData == null){
-            return;
+    if(inputCheckBox_ShowHitBoxes != null){
+        inputCheckBox_ShowHitBoxes.onclick = () => {
+            if(LastCoreData == null){
+                return;
+            }
+            LastCoreData.DrawHitBoxes = inputCheckBox_ShowHitBoxes.checked;
         }
-        LastCoreData.DrawHitBoxes = inputCheckBox_ShowHitBoxes.checked;
     }
     //show sprite boxes
-    inputCheckBox_ShowSpriteBoxes.onclick = () => {
-        if(LastCoreData == null){
-            return;
+    if(inputCheckBox_ShowSpriteBoxes != null){
+        inputCheckBox_ShowSpriteBoxes.onclick = () => {
+            if(LastCoreData == null){
+                return;
+            }
+            LastCoreData.DrawSpriteBoxes = inputCheckBox_ShowSpriteBoxes.checked;
         }
-        LastCoreData.DrawSpriteBoxes = inputCheckBox_ShowSpriteBoxes.checked;
     }
     //centers
-    inputCheckBox_ShowSpriteCenters.onclick = () => {
-        if(LastCoreData == null){
-            return;
+    if(inputCheckBox_ShowSpriteCenters != null){
+        inputCheckBox_ShowSpriteCenters.onclick = () => {
+            if(LastCoreData == null){
+                return;
+            }
+            LastCoreData.DrawSpriteCenters = inputCheckBox_ShowSpriteCenters.checked;
         }
-        LastCoreData.DrawSpriteCenters = inputCheckBox_ShowSpriteCenters.checked;
     }
 
 </script>

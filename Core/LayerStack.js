@@ -114,9 +114,6 @@ class LayerStack{
  */
 class GameLayer {
     constructor(){
-        this.Clear();
-    }
-    Clear(){
         //for internal use only
         this.Num_StackPriority = -1;
         this.Lst_Sets = [];
@@ -126,6 +123,11 @@ class GameLayer {
         this.Matrix_CameraTransform = new Matrix3X3();
         this.Num_Alpha = 1;
         this.bool_IsPaused = false;
+    }
+    ClearInstances(){
+        this.Lst_Sets.forEach(element => {
+            element.ClearInstances();
+        });
     }
     /**
      * 
@@ -248,12 +250,14 @@ class GameLayer {
  */
 class LayerInstanceSet {
     constructor(){
-        this.Clear();
-    }
-    Clear(){
         this.Num_Priority = 0;
         this.Lst_Instances = [];
         this.Set_OpenIndexes = new Set();
+    }
+    ClearInstances(){
+        this.Lst_Instances.forEach(element => {
+            this.RemoveInstance(element);
+        });
     }
     AddInstance(Instance){
         if(Instance == null){

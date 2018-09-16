@@ -1,9 +1,11 @@
 var Enum_MouseButtons = {
+    INVALID_MOUSE_BUTTON: -1,
     LEFT_MOUSE_BUTTON: 0,
     MIDDLE_MOUSE_BUTTON: 1,
     RIGHT_MOUSE_BUTTON: 2,
 };
 var Enum_KeyboardButtons = {
+    BUTTON_INVALID: -1,
     BUTTON_BACKSPACE: 8,
     BUTTON_TAB: 9,
     BUTTON_ENTER: 13,
@@ -104,13 +106,25 @@ var Enum_KeyboardButtons = {
     BUTTON_CLOSE_BRAKET: 221,
     BUTTON_SINGLE_QUOTE: 222
 };
+class UserInput {
+    constructor(){
+        this.Bool_Blocked = false;
+        this.Enum_MouseInput = Enum_MouseButtons.INVALID_MOUSE_BUTTON;
+        this.Enum_KeyboardInput = Enum_KeyboardButtons.BUTTON_INVALID;
+        this.Bool_ButtonDown = true;
+        this.Num_MouseWheelMove = 0;
+        this.Vector_MousePosition = new Vector2D();
+    }
+}
 class InputManager{
     constructor(){
         this.Vector_LastMousePosition = new Vector2D();
         this.Set_MouseButtonsDown = new Set();
         this.Set_KeyboardButtonsDown = new Set();
-        this.Num_WheelPosition = 0;
         this.Bool_HasFocus = true;
+
+        this.Lst_CurrentTickInputs = [];//Use this one
+        this.Lst_NextTickInputs = [];
     }
     /**
      * @param {CoreData} coreData 
@@ -165,6 +179,11 @@ class InputManager{
             if(!self.Set_MouseButtonsDown.has(ButtonType)){
                 self.Set_MouseButtonsDown.add(ButtonType);
             }
+            var newInput = new UserInput();
+            newInput.Bool_ButtonDown = true;
+            newInput.Enum_MouseInput = ButtonType;
+            newInput.Vector_MousePosition.Assign(self.Vector_LastMousePosition);
+            self.Lst_NextTickInputs.push(newInput);
         }
         //mouse up
         coreData.CanvasElement.onmouseup = (event) => {
@@ -176,11 +195,19 @@ class InputManager{
             if(self.Set_MouseButtonsDown.has(ButtonType)){
                 self.Set_MouseButtonsDown.delete(ButtonType);
             }
+            var newInput = new UserInput();
+            newInput.Bool_ButtonDown = false;
+            newInput.Enum_MouseInput = ButtonType;
+            newInput.Vector_MousePosition.Assign(self.Vector_LastMousePosition);
+            self.Lst_NextTickInputs.push(newInput);
         }
 
         //mouse wheel
         coreData.DocumentObj.onwheel = (event) => {
-            self.Num_WheelPosition += event.deltaY;
+            var newInput = new UserInput();
+            newInput.Num_MouseWheelMove = event.deltaY;
+            newInput.Vector_MousePosition.Assign(self.Vector_LastMousePosition);
+            self.Lst_NextTickInputs.push(newInput);
         };
 
         //key down
@@ -188,12 +215,22 @@ class InputManager{
             if(!self.Set_KeyboardButtonsDown.has(event.keyCode)){
                 self.Set_KeyboardButtonsDown.add(event.keyCode);
             }
+            var newInput = new UserInput();
+            newInput.Bool_ButtonDown = true;
+            newInput.Enum_KeyboardInput = event.keyCode;
+            newInput.Vector_MousePosition.Assign(self.Vector_LastMousePosition);
+            self.Lst_NextTickInputs.push(newInput);
         }
         //key up
         coreData.DocumentObj.onkeyup = (event) => {
             if(self.Set_KeyboardButtonsDown.has(event.keyCode)){
                 self.Set_KeyboardButtonsDown.delete(event.keyCode);
             }
+            var newInput = new UserInput();
+            newInput.Bool_ButtonDown = false;
+            newInput.Enum_KeyboardInput = event.keyCode;
+            newInput.Vector_MousePosition.Assign(self.Vector_LastMousePosition);
+            self.Lst_NextTickInputs.push(newInput);
         }
         //focus gained
         coreData.WindowObj.onfocus = () => {
@@ -214,6 +251,16 @@ class InputManager{
             self.Set_KeyboardButtonsDown.clear();
 
             console.log("InputManager [coreData.WindowObj.onblur] Focus Lost");
+        }
+    }
+    /**
+     * @param {Number} DeltaTime 
+     * @param {CoreData} coreData 
+     */
+    Tick(coreData, DeltaTime){ 
+        if(this.Lst_CurrentTickInputs.length > 0 || this.Lst_NextTickInputs.length > 0){
+            this.Lst_CurrentTickInputs = this.Lst_NextTickInputs;
+            this.Lst_NextTickInputs = [];
         }
     }
 }

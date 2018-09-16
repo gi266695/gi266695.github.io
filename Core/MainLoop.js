@@ -43,6 +43,23 @@ class CoreData {
     ClearContext2D(){
         this.Context2D = null;
     }
+    /**
+     * @param {Number} DeltaTime 
+     */
+    TickDraw(DeltaTime){
+        if(this.InputManager != null){
+            this.InputManager.Tick(this, DeltaTime);
+        }
+        if(this.LayerStack != null){
+            this.LayerStack.Tick(this, DeltaTime);
+        }
+        if(this.AudioManager != null){
+            this.AudioManager.Tick(this, DeltaTime);
+        }
+        if(this.LayerStack != null){
+            this.LayerStack.Draw(this);
+        }
+    }
 }
 
 /** blatently copied from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/*/

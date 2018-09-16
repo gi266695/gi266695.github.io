@@ -1,9 +1,14 @@
 class AssetLibrary {
     constructor(){
-        this.Clear();
+        this.Clear(true);
     }
-    Clear(){
-        this.AudioContext = null;
+    /**
+     * @param {boolean} Bool_ClearAudoiContext 
+     */
+    Clear(Bool_ClearAudoiContext = true){
+        if(Bool_ClearAudoiContext){
+            this.AudioContext = null;
+        }
 
         this.SpriteSheets = {};
         this.Sprites = {};
@@ -265,7 +270,12 @@ class AssetLibrary {
         if(IsLoaded == null){
             return;
         }
-        if(defPath == null || this.AudioContext == null){
+        if(defPath == null){
+            IsLoaded(defPath, false);
+            return;
+        }
+        if(this.AudioContext == null){
+            console.log('"LoadAudio.Load(): failed to load [' + defPath + '] because this.AudioContext is null');
             IsLoaded(defPath, false);
             return;
         }
@@ -284,24 +294,9 @@ class AssetLibrary {
         }
         var self = this;
         defPath = defPath.toLowerCase();
+
         //https://stackoverflow.com/questions/30433667/cloning-audio-source-without-having-to-download-it-again
         //https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
-        /*newAudio = new Audio();
-        newAudio.autoplay = false;
-        newAudio.oncanplaythrough = Local_IsLoaded;
-        newAudio.onerror = Local_LoadError;
-        newAudio.src = defPath;
-        newAudio.load();
-
-        function Local_LoadError(e){
-            self.ReportLoadComplete(defPath, false);
-        }
-        function Local_IsLoaded(){
-            self.AddAudio(defPath, this);
-            self.ReportLoadComplete(defPath, true);
-        }
-        return;*/
-
         var xhttp = new XMLHttpRequest();
         try{
             xhttp.onreadystatechange = Local_IsLoaded;

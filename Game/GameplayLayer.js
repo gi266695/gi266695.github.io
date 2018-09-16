@@ -26,9 +26,7 @@ Enum_EnemyTeams = {
 class GameplayLayer extends GameLayer {
     constructor(){
         super();
-    }
-    Clear(){
-        super.Clear();
+        
         this.bool_loadingRoom = false;
         this.Lst_ActiveLevels = [];
         this.Player = null;
@@ -48,9 +46,10 @@ class GameplayLayer extends GameLayer {
             this.AddInstance(this.Player, Enum_ObjectPriorities.PRIORITY_OBJECT_PLAYER);
         }
         else if(this.Player.Layer != this){
-            this.Lst_ActiveLevels.forEach(element => {
+            /*this.Lst_ActiveLevels.forEach(element => {
                 element.RemoveFromLayer();
-            });
+            });*/
+            this.ClearInstances();
             this.Lst_ActiveLevels = [];
             this.Player = null;
         }

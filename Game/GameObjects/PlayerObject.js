@@ -100,11 +100,27 @@ class PlayerObject extends GameObject{
             coreData.AudioManager.Vector_ListenerPosition =  this.Vector_Center;
             this.UpdateMapInforation();
 
+            var Bool_bClicked = false;
+            if(coreData.InputManager.Set_MouseButtonsDown.has(Enum_MouseButtons.LEFT_MOUSE_BUTTON)
+                    || coreData.InputManager.Set_MouseButtonsDown.has(Enum_MouseButtons.RIGHT_MOUSE_BUTTON)){
+                
+                Bool_bClicked = true;
+            }
+            if(!Bool_bClicked){
+                for(var loop = 0; loop < coreData.InputManager.Lst_CurrentTickInputs.length; loop++){
+                    var current = coreData.InputManager.Lst_CurrentTickInputs[loop];
+                    if(current.Bool_ButtonDown
+                            && (current.Bool_ButtonDown.Enum_MouseInput == Enum_MouseButtons.LEFT_MOUSE_BUTTON)
+                                || current.Bool_ButtonDown.Enum_MouseInput == Enum_MouseButtons.RIGHT_MOUSE_BUTTON){
+                        
+                        Bool_bClicked = true;
+                    }
+                }
+            }
+
             switch(this.m_State){
                 case Enum_PlayerState.PLAYER_IDLE:
-                    if(coreData.InputManager.Set_MouseButtonsDown.has(Enum_MouseButtons.LEFT_MOUSE_BUTTON)
-                            || coreData.InputManager.Set_MouseButtonsDown.has(Enum_MouseButtons.RIGHT_MOUSE_BUTTON)){
-                        
+                    if(Bool_bClicked){   
                         this.Sprite.SetAnimation("Shoot");
                         this.m_State = Enum_PlayerState.PLAYER_FIRE_INTRO;
                         return;
