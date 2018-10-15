@@ -1,0 +1,20 @@
+{
+	"Animations": [{
+		"Name": "Idle",
+		"Steps": [{
+			"SpiteSheets": [{
+				"ImagePath": "minimap_player.png",
+				"SecondsPerFrame": 0.20,
+				"Width": 0.5,
+				"Height": 0.5,
+				"CenterX": 0,
+				"CenterY": 0,
+				"Rows": 1,
+				"Columns": 1,
+				"Remainder": 0,
+				"HasOpacity": false,
+				"Loop": true
+			}]
+		}]
+	}]
+}

@@ -43,6 +43,46 @@ class CoreData {
     ClearContext2D(){
         this.Context2D = null;
     }
+    //https://www.w3schools.com/js/js_cookies.asp
+    /** 
+     * @param {string} Str_Name 
+     * @param {string} Str_Value 
+     * @param {number} Num_Days 
+     */
+    SetCookie(Str_Name, Str_Value, Num_Days) {
+        if(this.DocumentObj == null){
+            return;
+        }
+        var d = new Date();
+        d.setTime(d.getTime() + (Num_Days * 24 * 60 * 60 * 1000));
+        var Str_Expires = "expires="+d.toUTCString();
+
+        //TODO: does this blow out other cookies
+        this.DocumentObj.cookie = Str_Name + "=" + Str_Value + ";" + Str_Expires + ";path=/";
+    }
+    /**
+     * 
+     * @param {string} Str_Name 
+     */
+    Str_GetCookie(Str_Name) {
+        if(this.DocumentObj == null){
+            return;
+        }
+        Str_Name = Str_Name + "=";
+        var LstStr = this.DocumentObj.cookie.split(';');
+        for(var loop = 0; loop < LstStr.length; loop++) {
+            var current = LstStr[loop];
+            while (current.charAt(0) == ' ') {
+                current = current.substring(1);
+            }
+            if (current.indexOf(Str_Name) == 0) {
+                return current.substring(Str_Name.length, current.length);
+            }
+        }
+        return "";
+    }
+
+    
     /**
      * @param {Number} DeltaTime 
      */

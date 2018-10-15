@@ -123,8 +123,12 @@ class InputManager{
         this.Set_KeyboardButtonsDown = new Set();
         this.Bool_HasFocus = true;
 
+        this.Bool_MouseInRootEle = false;
+
         this.Lst_CurrentTickInputs = [];//Use this one
         this.Lst_NextTickInputs = [];
+
+        this.Bool_UsingScrollWheel = false;
     }
     /**
      * @param {CoreData} coreData 
@@ -167,6 +171,11 @@ class InputManager{
 
             self.Vector_LastMousePosition.x = event.pageX - coreData.RootElement.offsetLeft;
             self.Vector_LastMousePosition.y = event.pageY - coreData.RootElement.offsetTop;
+            
+            self.Bool_MouseInRootEle = self.Vector_LastMousePosition.x >= 0
+                                        && self.Vector_LastMousePosition.x < coreData.RootElement.offsetWidth
+                                        && self.Vector_LastMousePosition.y >= 0 
+                                        && self.Vector_LastMousePosition.y < coreData.RootElement.offsetHeight;
         }
 
         //mouse down
@@ -204,10 +213,12 @@ class InputManager{
 
         //mouse wheel
         coreData.DocumentObj.onwheel = (event) => {
-            var newInput = new UserInput();
-            newInput.Num_MouseWheelMove = event.deltaY;
-            newInput.Vector_MousePosition.Assign(self.Vector_LastMousePosition);
-            self.Lst_NextTickInputs.push(newInput);
+            if(self.Bool_UsingScrollWheel && self.Bool_MouseInRootEle){
+                var newInput = new UserInput();
+                newInput.Num_MouseWheelMove = event.deltaY;
+                newInput.Vector_MousePosition.Assign(self.Vector_LastMousePosition);
+                self.Lst_NextTickInputs.push(newInput);
+            }
         };
 
         //key down
@@ -258,9 +269,18 @@ class InputManager{
      * @param {CoreData} coreData 
      */
     Tick(coreData, DeltaTime){ 
+        //push next set of inputs
         if(this.Lst_CurrentTickInputs.length > 0 || this.Lst_NextTickInputs.length > 0){
             this.Lst_CurrentTickInputs = this.Lst_NextTickInputs;
             this.Lst_NextTickInputs = [];
+        }
+        //disable scrolling if nessesary
+        var body =  coreData.DocumentObj.body;
+        if(body != null){
+            var targetState = (this.Bool_UsingScrollWheel && this.Bool_MouseInRootEle) ? "hidden" : "auto";
+            if(body.style.overflow != targetState){
+                body.style.overflow = targetState
+            }
         }
     }
 }

@@ -105,7 +105,7 @@ class GameAssetLibrary extends AssetLibrary {
             }
         }
     }
-    
+
     //-------------------------------------------------------------------------
     //Tile Factory
     /**
@@ -166,11 +166,28 @@ class GameAssetLibrary extends AssetLibrary {
      * @param {function} IsLoaded - IsLoaded(defPath, bSuccess)
      */
     LoadLevelDef(defPath, IsLoaded){
+        var Self = this;
+
         this.LoadAsset(defPath
             , () => { return new LevelDef();}
             , (str_Path) => { return this.GetLevelDef(str_Path); }
             , (str_Path, Asset) => { this.AddLevelDef(str_Path, Asset); }
-            , IsLoaded);
+            , Local_LevelLoadComplete);
+
+        function Local_LevelLoadComplete(str_Path, bSuccess){
+            IsLoaded(str_Path, bSuccess);
+
+            //Becuase Circular dependencies we need to report the load of each level finished before we can load and wire up dependencies
+            var LoadedLevel = Self.GetLevelDef(str_Path);
+            if(LoadedLevel != null
+                    && LoadedLevel.Lst_AdjacentLevelPaths.length > 0
+                    && !LoadedLevel.Bool_AdjacentLevelsLoaded){
+
+                Self.LoadAssets(LoadedLevel.Lst_AdjacentLevelPaths, (str_Path, bSuccess) => {
+                    LoadedLevel.SetAdjacentLevels(Self);
+                });
+            }
+        }
     }
     /**
      * @param {String} defPath
@@ -185,12 +202,41 @@ class GameAssetLibrary extends AssetLibrary {
     GetLevelDef(defPath){
         return this.GetAsset(this.LevelDefs, defPath);
     }
+    /**
+     * @param {string} defPath 
+     */
     GetLevelInstance(defPath){
         var def = this.GetLevelDef(defPath);
         if(def == null){
             return null;
         }
         return def.Level_CreateInstance();
+    }
+    LstStr_GetAllMapSpawns(){
+        Lst_RetVal = [];
+        for(var LevelPath in this.LevelDefs){
+            Lst_RetVal.push.apply(Lst_RetVal, this.LevelDefs[LevelPath].LstStr_GetCheckpointSpawnNames());
+        }
+        return Lst_RetVal;
+    }
+    LstObj_GetAllMapSpawns(){
+        Lst_RetVal = [];
+        for(var LevelPath in this.LevelDefs){
+            Lst_RetVal.push.apply(Lst_RetVal, this.LevelDefs[LevelPath].LstObj_GetCheckpointSpawns());
+        }
+        return Lst_RetVal;
+    }
+    /**
+     * @param {string} str_SpawnName 
+     */
+    Str_GetLevelBySpawn(str_SpawnName){
+        for(var LevelPath in this.LevelDefs){
+            var Level = this.LevelDefs[LevelPath];
+            if(Level.LstStr_GetCheckpointSpawnNames().includes(str_SpawnName)){
+                return LevelPath;
+            }
+        }
+        return null;
     }
 
     //-------------------------------------------------------------------------

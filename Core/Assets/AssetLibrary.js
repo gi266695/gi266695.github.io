@@ -109,6 +109,9 @@ class AssetLibrary {
             }
         }
     }
+    Bool_IsLoading(){
+        return Object.keys(this.Dct_LoadsInProgress).length > 0
+    }
     //-------------------------------------------------------------------------
     //Sprites
     /**
@@ -130,13 +133,15 @@ class AssetLibrary {
         this.AddAsset(this.Sprites, defPath, newDef); 
     }
     /**
-     * 
      * @param {string} defPath 
      */
     GetSpriteDef(defPath){
         return this.GetAsset(this.Sprites, defPath);
     }
-
+    /**
+     * @param {string} defPath 
+     * @param {BaseInstance} Instance_Parent 
+     */
     SpriteInstance_GetSpriteInstance(defPath, Instance_Parent){
         var Def = this.GetSpriteDef(defPath);
         if(Def == null){

@@ -2,6 +2,7 @@ class LevelDef extends BaseAsset {
     constructor(){
         super();
         
+        this.Str_LevelPath = "";
         this.Vector_Center = new Vector2D();
         this.HitBox = new PolygonalHitBox();
         this.LstDefs_Rooms = [];
@@ -10,6 +11,11 @@ class LevelDef extends BaseAsset {
         this.Lst_MapsSpriteFactoryRefs = [];
         this.Lst_MapSpriteSpawns = [];
         this.Lst_GameObjectSpawns = [];
+        this.Set_CheckpointSpawns = new Set(); //these spawns are in Lst_GameObjectSpawns as well
+
+        this.Lst_AdjacentLevelPaths = [];
+        this.Lst_AdjacentLevels = [];
+        this.Bool_AdjacentLevelsLoaded = false;
     }
     /**
      * Load data from file now that the file has been loaded
@@ -25,12 +31,16 @@ class LevelDef extends BaseAsset {
         /*
         {
             "Center": {Vector2D},
+            "AdjacentLevels": ["...", "..."],
             "Rooms": [{RoomDef}, {RoomDef}],
             "MapSprite_Defs": ["Data/...", "Data/..."],
             "MapSprite_Spawns": [{MapSpriteSpawn},{MapSpriteSpawn}]
             "GameObject_Spawns": [{object},{object}]
         }
         */
+        if(String_Path != null){
+            this.Str_LevelPath = String_Path;
+        }
         var Center = new Vector2D();
         if(Center.bool_LoadFromFileData(String_Path, JSONObject.Center)){
             this.Vector_Center = Center;
@@ -65,6 +75,20 @@ class LevelDef extends BaseAsset {
         //Game Object Spawns
         if(Array.isArray(JSONObject.GameObject_Spawns)){
             this.Lst_GameObjectSpawns = JSONObject.GameObject_Spawns;
+            this.Lst_GameObjectSpawns.forEach(elementSpawn => {
+                var Str_Name = CheckpointObject.Str_CheckpointGetNameFromSpawn(elementSpawn);
+                if(Str_Name != null){
+                    this.Set_CheckpointSpawns.add(elementSpawn);
+                }
+            });
+        }
+        //Adjacent levels
+        if(Array.isArray(JSONObject.AdjacentLevels)){
+            JSONObject.AdjacentLevels.forEach(element => {
+                if(typeof element === 'string'){
+                    this.Lst_AdjacentLevelPaths.push(element);
+                }
+            });
         }
 
         //update bounds
@@ -73,28 +97,28 @@ class LevelDef extends BaseAsset {
         var MaxX = null;
         var MaxY = null;
         this.LstDefs_Rooms.forEach(Room => {
-            var temp = Room.Vector_Center.x - (Room.Num_Width / 2) - 0.5;
+            var temp = this.Vector_Center.x + Room.Vector_Center.x - (Room.Num_Width / 2) - 0.5;
             if(MinX == null){
                 MinX = temp;
             }
             else {
                 MinX = Math.min(MinX, temp);
             }
-            temp = Room.Vector_Center.y - (Room.Num_Height / 2) - 0.5;
+            temp = this.Vector_Center.y + Room.Vector_Center.y - (Room.Num_Height / 2) - 0.5;
             if(MinY == null){
                 MinY = temp;
             }
             else {
                 MinY = Math.min(MinY, temp);
             }
-            temp = Room.Vector_Center.x + (Room.Num_Width / 2) - 0.5;
+            temp = this.Vector_Center.x + Room.Vector_Center.x + (Room.Num_Width / 2) - 0.5;
             if(MaxX == null){
                 MaxX = temp;
             }
             else {
                 MaxX = Math.max(MaxX, temp);
             }
-            temp = Room.Vector_Center.y + (Room.Num_Height / 2) - 0.5;
+            temp = this.Vector_Center.y +Room.Vector_Center.y + (Room.Num_Height / 2) - 0.5;
             if(MaxY == null){
                 MaxY = temp;
             }
@@ -123,6 +147,9 @@ class LevelDef extends BaseAsset {
             RetVal.push.apply(RetVal, element.LstStr_GetDependencies());
         });
         RetVal.push.apply(RetVal, this.Lst_MapSpriteFactories);
+        
+        //we cannot list Adjacent levels as dependencies because these dependencies are circular
+        //RetVal.push.apply(RetVal, this.Lst_AdjacentLevelPaths);
         return RetVal;
     }
     
@@ -141,6 +168,19 @@ class LevelDef extends BaseAsset {
             var newFact = assetLibrary.GetMapSpiteFactoryDef(element);
             if(newFact != null){
                 this.Lst_MapsSpriteFactoryRefs.push(newFact);
+            }
+        });
+    }
+    SetAdjacentLevels(assetLibrary){
+        if(assetLibrary == null){
+            return;
+        }
+        //adding adjacent levels in a seperate step to avoid circulat dependency shananagans
+        this.Bool_AdjacentLevelsLoaded = true;
+        this.Lst_AdjacentLevelPaths.forEach((element) => {
+            var level = assetLibrary.GetLevelDef(element);
+            if(level != null){
+                this.Lst_AdjacentLevels.push(level);
             }
         });
     }
@@ -174,15 +214,47 @@ class LevelDef extends BaseAsset {
 
         //Create Game Objects
         this.Lst_GameObjectSpawns.forEach((spawn) => {
-            var Obj = GameObject_BuildFromSpawn(spawn);
+            var Obj = GameObject_BuildFromSpawn(this.Vector_Center, spawn);
             if(Obj != null){
                 RetVal.LstInstances_GameObjects.push(Obj);
+                if(this.Set_CheckpointSpawns.has(spawn)){
+                    RetVal.Dct_SpawnsByName[CheckpointObject.Str_CheckpointGetNameFromSpawn(spawn)] = Obj;
+                }
             }
         });
-
         return RetVal;
     }
 
+    /**
+     * @param {array} Lst_ToAddTo 
+     */
+    AddRoomMiniMapSprites(Lst_ToAddTo){
+        if(Lst_ToAddTo == null){
+            return;
+        }
+        var Temp = new Vector2D();
+        this.LstDefs_Rooms.forEach(element => {
+            Temp.Assign(this.Vector_Center);
+            Temp.AddToSelf(element.Vector_Center);
+
+            element.AddMiniMapSprites(Temp, Lst_ToAddTo);
+        });
+    }
+    
+    LstStr_GetCheckpointSpawnNames(){
+        var Lst_RetVal = [];
+        this.Set_CheckpointSpawns.forEach(element => {
+            Lst_RetVal.push(CheckpointObject.Str_CheckpointGetNameFromSpawn(element));
+        });
+        return Lst_RetVal;
+    }
+    LstObj_GetCheckpointSpawns(){
+        var Lst_RetVal = [];
+        this.Set_CheckpointSpawns.forEach(element => {
+            Lst_RetVal.push(element);
+        });
+        return Lst_RetVal;
+    }
 }
 
 class LevelInstance {
@@ -193,6 +265,8 @@ class LevelInstance {
         this.LstInstances_Rooms = [];
         this.LstInstances_MapSprites = [];
         this.LstInstances_GameObjects = [];
+
+        this.Dct_SpawnsByName = {};
 
         //lookup table for what tiles are where
         this.DctDct_TilesByPosition = {};
@@ -240,6 +314,8 @@ class LevelInstance {
         this.LstInstances_GameObjects.forEach((obj) => {
             Layer_Target.AddInstance(obj, obj.Enum_DefualtPriority);
         });
+
+        console.log("LevelInstance.AddToLayer() Added Level [" +  this.LevelDef.Str_LevelPath + "]");
     }
     RemoveFromLayer(){
         //pull rooms
@@ -258,11 +334,20 @@ class LevelInstance {
         });
 
         //pull game objects
-        this.LstInstances_GameObjects.forEach(obj => {
-            obj.RemoveSelfFromLayer();
-        });
-
+        for(var loop = 0; loop < this.LstInstances_GameObjects.length; /*Not a typo*/){
+            var obj = this.LstInstances_GameObjects[loop];
+            //if an obj killed itself don't re-add it
+            if(obj.Layer != this.Layer){
+                this.LstInstances_GameObjects.splice(loop, 1);
+            }
+            else{
+                obj.RemoveSelfFromLayer();
+                loop++;
+            }
+        }
         this.Layer = null;
+        
+        console.log("LevelInstance.RemoveFromLayer() Removed Level [" +  (this.LevelDef != null ? this.LevelDef.Str_LevelPath : "NULL Def") + "]");
     }
     Bool_IsInLayer(){
         return this.Layer != null;
@@ -322,6 +407,15 @@ class LevelInstance {
         }
         //profit
         return RetVal;
+    }
+    /**
+     * @param {string} Str_Name 
+     */
+    Obj_GetSpawnByName(Str_Name){
+        if(Str_Name in this.Dct_SpawnsByName){
+            return this.Dct_SpawnsByName[Str_Name];
+        }
+        return null;
     }
     /**
      * if Func_Break return trues this loop break this returns true if Func_Break returns true 
@@ -522,7 +616,7 @@ class RoomDef extends BaseAsset {
                     Vector_temp.y = Vector_Center.y - (this.Num_Height / 2) + loopY;
                     var NewTile = null;
                     for(var loopFactory = 0; NewTile == null && loopFactory < this.LstTile_FactoryReferences.length; ++loopFactory){
-                        NewTile = this.LstTile_FactoryReferences[loopFactory].CreateInstance(this.LstLstStr_Tiles[loopY][loopX],Vector_temp);
+                        NewTile = this.LstTile_FactoryReferences[loopFactory].CreateInstance(this.LstLstStr_Tiles[loopY][loopX], Vector_temp);
                     }
                     RetVal.Lst_Tiles.push(NewTile); 
                 }            
@@ -535,6 +629,31 @@ class RoomDef extends BaseAsset {
         RetVal.HitBox.Init();
 
         return RetVal;
+    }
+    AddMiniMapSprites(Vector_Center, Lst_ToAddTo){
+        if(Vector_Center == null || Lst_ToAddTo == null){
+            return;
+        }
+        var Vector_temp = new Vector2D();
+        for(var loopX = 0; loopX < this.Num_Width; ++loopX){
+            for(var loopY = 0; loopY < this.Num_Height; ++loopY){
+                if(loopY < this.LstLstStr_Tiles.length
+                        && this.LstLstStr_Tiles[loopY] != null
+                        && loopX < this.LstLstStr_Tiles[loopY].length){
+                
+                    Vector_temp.x = Vector_Center.x - (this.Num_Width / 2) + loopX;
+                    Vector_temp.y = Vector_Center.y - (this.Num_Height / 2) + loopY;
+                    
+                    var newSprite = null;
+                    for(var loopFactory = 0; newSprite == null && loopFactory < this.LstTile_FactoryReferences.length; ++loopFactory){
+                        newSprite = this.LstTile_FactoryReferences[loopFactory].Sprite_GetMiniMapSprite(this.LstLstStr_Tiles[loopY][loopX], Vector_temp);
+                    }
+                    if(newSprite != null){
+                        Lst_ToAddTo.push(newSprite);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -879,7 +998,132 @@ function forEach_RoomOnLine(Lst_Levels, Vec_Line1, Vec_Line2, Bool_CollisionsOnl
         }
     }
 }
+/**
+ * @param {array} Lst_Levels 
+ * @param {array} Lst_ObjectBoxes 
+ * @param {function} Func_LstGetBoxes 
+ * @param {function} Func_BoolPreCheck 
+ * @param {function} Func_BoolPostCheck 
+ */
+function Lst_GetGameObjects(Lst_Levels, Lst_ObjectBoxes, Func_LstGetBoxes, Func_BoolPreCheck, Func_BoolPostCheck){
+    if(Lst_Levels == null
+            || Lst_ObjectBoxes == null
+            || Func_LstGetBoxes == null){
 
+        return null;
+    }
+    if(Func_BoolPreCheck == null){
+        Func_BoolPreCheck = (GameObj) => {
+            if(GameObj == null){
+                return false;
+            }
+            var LstBoxes = Func_LstGetBoxes(GameObj);
+            if(LstBoxes == null || LstBoxes.length <= 0){
+                return false;
+            }
+            return true;
+        }
+    }
+    if(Func_BoolPostCheck == null){
+        Func_BoolPostCheck = (GameObj, Lst_Boxes) => {return true;}
+    }
+    var Retval = null;
+    var FailedReturnVals = null;
+    forEach_RoomInBounds(Lst_Levels, Lst_ObjectBoxes, false, (Room) => {
+        var GameObjectsToCheck = null;
+        Room.Set_GameObjectsInRoom.forEach(element_GameObj => {
+            if(Func_BoolPreCheck(element_GameObj)
+                    && (Retval == null || !Retval.includes(element_GameObj))
+                    && (FailedReturnVals == null || !FailedReturnVals.includes(element_GameObj))){
+
+                if(GameObjectsToCheck == null){
+                    GameObjectsToCheck = [];
+                }
+                GameObjectsToCheck.push(element_GameObj);
+            }
+        });
+        if(GameObjectsToCheck != null){
+            var IsColidingWithRoom = false;
+            for(var loop = 0; loop < Lst_ObjectBoxes.length; loop++){
+                if(Bool_GetCollisionData(Room.HitBox, Lst_ObjectBoxes[loop])){
+                    IsColidingWithRoom = true;
+                    break;
+                }
+            }
+            if(IsColidingWithRoom){
+                GameObjectsToCheck.forEach((element_GameObj) => {            
+                    var Element_HitBoxes = Func_LstGetBoxes(element_GameObj);
+                    if(Element_HitBoxes != null){
+                        var Bool_FoundCollision = false;
+                        for(var loopElement = 0; !Bool_FoundCollision && loopElement < Element_HitBoxes.length; loopElement++){
+                            for(var loopObj = 0; !Bool_FoundCollision && loopObj < Lst_ObjectBoxes.length; loopObj++){
+                                Bool_FoundCollision = true;
+                                if(Bool_GetCollisionData(Element_HitBoxes[loopElement], Lst_ObjectBoxes[loopObj])){
+                                    var Bool_Success = false;
+                                    if(Func_BoolPostCheck(element_GameObj, Element_HitBoxes)){
+                                        if(Retval == null){
+                                            Retval = [];
+                                        }
+                                        Retval.push(element_GameObj);
+                                        Bool_Success = true;
+                                    }
+                                    if(!Bool_Success){
+                                        if(FailedReturnVals == null){
+                                            FailedReturnVals = [];
+                                        }
+                                        FailedReturnVals.push(element_GameObj);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    });
+    return Retval;
+}
+/**
+ * @param {array} Lst_Levels 
+ * @param {GameObject} GameObj_Self 
+ * @param {array} Lst_ObjectBoxes 
+ */
+function Lst_GetDamageTargets(Lst_Levels, GameObj_Self, Lst_ObjectBoxes){
+    if(Lst_Levels == null
+            || Lst_ObjectBoxes == null
+            || GameObj_Self == null){
+
+        return null;
+    }
+    return Lst_GetGameObjects(Lst_Levels
+                            , Lst_ObjectBoxes
+                            , (GameObj) => { return GameObj != GameObj_Self && (GameObj != null ? GameObj.LstBoxes_GetHitBoxesInLocalSpace(GameObj.Str_BlocksShots) : null); }
+                            , (GameObj) => { return GameObj != null && GameObj_Self.Bool_DoesBulletDamageThis(GameObj); }
+                            , (GameObj, Lst_Boxes) => { return true; } )
+}
+
+/**
+ * Func_UseObj is expected to return true if the object is wanted otherwise false
+ * @param {array} Lst_Levels 
+ * @param {GameObject} GameObj_Self
+ * @param {array} Lst_ObjectBoxes 
+ * @param {function} Func_UseObj 
+ */
+function Lst_GetAgroTargets(Lst_Levels, GameObj_Self, Lst_ObjectBoxes, Func_UseObj = (Obj, Box) => {return true;}){
+    if(Func_UseObj == null
+            || Lst_ObjectBoxes == null
+            || Func_UseObj == null
+            || GameObj_Self == null
+            || Lst_ObjectBoxes.length <= 0){
+
+        return null;
+    }
+    return Lst_GetGameObjects(Lst_Levels
+                            , Lst_ObjectBoxes
+                            , (GameObj) => { return GameObj != null ? GameObj.LstBoxes_GetHitBoxesInLocalSpace(GameObj.Str_Visible) : null; }
+                            , (GameObj) => { return GameObj != GameObj_Self && GameObj.Str_Visible != null && GameObj_Self.Bool_DoesObjAgroThis(GameObj); }
+                            , Func_UseObj);
+}
 /**
  * @param {array} Lst_Levels 
  * @param {GameObject} GameObj_Self 
@@ -950,6 +1194,7 @@ function Bool_IsBulletHitting(Lst_Levels, GameObj_Self, Lst_ObjectBoxes){
     if(Bool_FoundHit){
         return true;
     }
+
     var CheckedGameObjects = null;
     forEach_RoomInBounds(Lst_Levels, Lst_ObjectBoxes, false, (Room) => {
         var Lst_ObjToCheck_Hit = null;
@@ -988,133 +1233,6 @@ function Bool_IsBulletHitting(Lst_Levels, GameObj_Self, Lst_ObjectBoxes){
     });
 
     return Bool_FoundHit;
-}
-/**
- * @param {array} Lst_Levels 
- * @param {GameObject} GameObj_Self 
- * @param {array} Lst_ObjectBoxes 
- */
-function Lst_GetDamageTargets(Lst_Levels, GameObj_Self, Lst_ObjectBoxes){
-    if(Lst_Levels == null
-            || Lst_ObjectBoxes == null
-            || GameObj_Self == null){
-
-        return;
-    }
-    var Lst_RetVal = null;
-    var CheckedGameObjects = null;
-    forEach_RoomInBounds(Lst_Levels, Lst_ObjectBoxes, false, (Room) => {
-        var Lst_ObjToCheck_Damage = null;
-        Room.Set_GameObjectsInRoom.forEach((element_GameObj) => {
-            if((CheckedGameObjects == null || !CheckedGameObjects.includes(CheckedGameObjects))
-                    && GameObj_Self.Bool_DoesBulletDamageThis(element_GameObj)){
-                
-                if(Lst_ObjToCheck_Damage == null){
-                    Lst_ObjToCheck_Damage = [];
-                }
-                Lst_ObjToCheck_Damage.push(element_GameObj);
-            }
-        });
-        if(Lst_ObjToCheck_Damage != null && Bool_AreAnyColliding([Room.HitBox], Lst_ObjectBoxes)){
-            for(var loopObjs = 0; loopObjs < Lst_ObjToCheck_Damage.length; loopObjs++){
-                var CurrentObj = Lst_ObjToCheck_Damage[loopObjs];
-                var Bool_HitBox = false;
-                var ObjBoxes_other = CurrentObj.LstBoxes_GetHitBoxesInLocalSpace(CurrentObj.Str_BlocksShots)
-                
-                //mark that we checked box
-                if(CheckedGameObjects == null){
-                    CheckedGameObjects = [];
-                }
-                CheckedGameObjects.push(CurrentObj);
-
-                //actually ckeck box
-                for(var loopOtherBoxes = 0; !Bool_HitBox && loopOtherBoxes < ObjBoxes_other.length; loopOtherBoxes++){
-                    for(var loopSelfBoxes = 0; !Bool_HitBox && loopSelfBoxes < Lst_ObjectBoxes.length; loopSelfBoxes++){
-                        Bool_HitBox = Bool_GetCollisionData(ObjBoxes_other[loopOtherBoxes], Lst_ObjectBoxes[loopSelfBoxes]);
-                    }
-                }
-                //report hit
-                if(Bool_HitBox){
-                    if(Lst_RetVal == null){
-                        Lst_RetVal = [];
-                    }
-                    Lst_RetVal.push(CurrentObj);
-                }
-            }
-        }
-        return false;
-    });
-
-    return Lst_RetVal;
-}
-
-/**
- * Func_UseObj is expected to return true if the object is wanted otherwise false
- * @param {array} Lst_Levels 
- * @param {GameObject} GameObj_Self
- * @param {array} Lst_ObjectBoxes 
- * @param {function} Func_UseObj 
- */
-function Lst_GetAgroTargets(Lst_Levels, GameObj_Self, Lst_ObjectBoxes, Func_UseObj = (Obj, Box) => {return true;}){
-    if(Func_UseObj == null
-            || Lst_ObjectBoxes == null
-            || Func_UseObj == null
-            || Lst_ObjectBoxes.length <= 0){
-
-        return null;
-    }
-    var Retval = null;
-    var FailedReturnVals = null;
-    forEach_RoomInBounds(Lst_Levels, Lst_ObjectBoxes, false, (Room) => {
-        var GameObjectsToCheck = null;
-        Room.Set_GameObjectsInRoom.forEach(element_GameObj => {
-            if(element_GameObj.Str_Visible != null
-                    && (Retval == null || !Retval.includes(element_GameObj))
-                    && (GameObj_Self == null || GameObj_Self.Bool_DoesObjAgroThis(element_GameObj))
-                    && (FailedReturnVals == null || !FailedReturnVals.includes(element_GameObj))){
-
-                if(GameObjectsToCheck == null){
-                    GameObjectsToCheck = [];
-                }
-                GameObjectsToCheck.push(element_GameObj);
-            }
-        });
-        if(GameObjectsToCheck != null){
-            var IsColidingWithRoom = false;
-            for(var loop = 0; loop < Lst_ObjectBoxes.length; loop++){
-                if(Bool_GetCollisionData(Room.HitBox, Lst_ObjectBoxes[loop])){
-                    IsColidingWithRoom = true;
-                    break;
-                }
-            }
-            if(IsColidingWithRoom){
-                GameObjectsToCheck.forEach((element_GameObj) => {            
-                    var Element_HitBoxes = element_GameObj.LstBoxes_GetHitBoxesInLocalSpace(element_GameObj.Str_Visible);
-                    for(var loopElement = 0; loopElement < Element_HitBoxes.length; loopElement++){
-                        for(var loopObj = 0; loopObj < Lst_ObjectBoxes.length; loopObj++){
-                            var Bool_Success = false;
-                            if(Bool_GetCollisionData(Element_HitBoxes[loopElement], Lst_ObjectBoxes[loopObj])){
-                                if(Func_UseObj(element_GameObj, Element_HitBoxes)){
-                                    if(Retval == null){
-                                        Retval = [];
-                                    }
-                                    Retval.push(element_GameObj);
-                                    Bool_Success = true;
-                                }
-                            }
-                            if(!Bool_Success){
-                                if(FailedReturnVals == null){
-                                    FailedReturnVals = [];
-                                }
-                                FailedReturnVals.push(element_GameObj);
-                            }
-                        }
-                    }
-                });
-            }
-        }
-    });
-    return Retval;
 }
 /**
  * @param {array} Lst_Levels 
@@ -1345,6 +1463,9 @@ function Bool_HasShot(Lst_Levels, Vector_PointOfSight, Lst_Boxes, Lst_GameObject
                 }
             }
         });
+    }
+    if(Bool_FoundCollision){
+        return false;
     }
     return true;
 }

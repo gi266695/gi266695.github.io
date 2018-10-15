@@ -25,7 +25,7 @@ class LayerStack{
         for(var loop = 0; loop < this.Lst_Layers.length; ++loop){
             var current = this.Lst_Layers[loop];
             //insert above existing layer
-            if(Num_Priority <= current.Num_Priority){
+            if(Num_Priority <= current.Num_StackPriority){
                 this.Lst_Layers.splice(loop, 0, Layer);
                 return;
             }
@@ -44,7 +44,7 @@ class LayerStack{
         }
         for(var loop = 0; loop < this.Lst_Layers.length; ++loop){
             if(this.Lst_Layers[loop] == Layer){
-                Layer = null;
+                Layer.LayerStack = null;
                 Layer.Num_StackPriority = -1;
 
                 this.Lst_Layers.splice(loop, 1);
@@ -204,10 +204,14 @@ class GameLayer {
         if(InverseScreenSpace == null){
             return;
         }
+        var tempCenter = new Vector2D();
+        tempCenter.Assign(Vector_Center);
+        tempCenter.MultiplySelf(Scale);
+
         var ScreenCenter = new Vector2D();
         ScreenCenter.Assign(this.LayerStack.ScreenBox.Vector_Center);
         ScreenCenter = InverseScreenSpace.Vector_MultiplyVector(ScreenCenter);
-        ScreenCenter.SubtractFromSelf(Vector_Center);
+        ScreenCenter.SubtractFromSelf(tempCenter);
 
         this.Matrix_CameraTransform.SetToTranslation(ScreenCenter.x, ScreenCenter.y);
         this.Matrix_CameraTransform.ScaleSelf(Scale, Scale);

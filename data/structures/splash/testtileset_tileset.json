@@ -19,6 +19,7 @@
 						"Rows": 1,
 						"Columns": 1,
 						"Remainder": 0,
+						"HasOpacity": false,
 						"Loop": true
 					},
 					{
@@ -54,6 +55,7 @@
 						"Rows": 1,
 						"Columns": 1,
 						"Remainder": 0,
+						"HasOpacity": false,
 						"Loop": true
 					}]
 				}]

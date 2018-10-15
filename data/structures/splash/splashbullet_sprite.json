@@ -55,6 +55,7 @@
 				"Rows": 3,
 				"Columns": 4,
 				"Remainder": 3,
+				"HasOpacity": false,
 				"Loop": false
 			},
 			{

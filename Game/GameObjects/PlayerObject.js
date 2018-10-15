@@ -76,8 +76,8 @@ class PlayerObject extends GameObject{
 
             //recenter
             if(coreData.InputManager.Set_KeyboardButtonsDown.has(Enum_KeyboardButtons.BUTTON_ENTER)){
-                this.Vector_Center.x = 5;
-                this.Vector_Center.y = 5;
+                this.RemoveSelfFromLayer();
+                return;
             }
 
             //manage Camera
@@ -128,7 +128,7 @@ class PlayerObject extends GameObject{
                     break;
                 case Enum_PlayerState.PLAYER_FIRE_INTRO:
                     if(this.Sprite.Num_GetAnimationPercent() >= (5/12)){
-                        var SpawnTransform = this.Sprite.Matrix_GetTransform("BulletSpawn", this.Matrix_GetTransform());
+                        var SpawnTransform = this.Sprite.Matrix_GetTransformByPath("BulletSpawn", this.Matrix_GetTransform());
                         if(SpawnTransform != null){
                             var Center = new Vector2D();
                             Center = SpawnTransform.Vector_MultiplyVector(Center);

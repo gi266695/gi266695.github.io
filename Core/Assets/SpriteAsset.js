@@ -124,6 +124,10 @@ class SpriteAsset extends BaseAsset {
                     this.dctAnimations[newAnim.str_name] = newAnim;
                 }
             });
+            //it is assumed that all sprites have have an idle anim
+            if(!('idle' in this.dctAnimations)){
+                this.dctAnimations['idle'] = new AnimationAsset();
+            }
         }
         if(Array.isArray(JSONObject.HitBoxes)){
             JSONObject.HitBoxes.forEach(elementBoxList => {
@@ -238,12 +242,10 @@ class SpriteInstance extends BaseInstance {
      * @param {CoreData} coreData 
      */
     Tick(coreData, DeltaTime){
-        if(this.CurrentAnim == null){
-            return;
+        //tick animation
+        if(this.CurrentAnim != null){
+            this.AnimationTime += (DeltaTime * this.AnimationSpeed);
         }
-        //tick animatoin
-        this.AnimationTime += (DeltaTime * this.AnimationSpeed);
-
         //tick sub sprites
         this.lst_Sprites.forEach(element => {
             element.Tick(coreData, DeltaTime);
@@ -276,14 +278,18 @@ class SpriteInstance extends BaseInstance {
         }
         CompleteTransform.MultiplyMatrix(this.LocalTransform);
 
+        //draw self
         if(this.CurrentAnim != null){
             var CurrentAlpha = ParentAlpha * this.LocalAlpha;
     
-            this.CurrentAnim.Draw(coreData, CompleteTransform, CurrentAlpha, this.AnimationTime);
-            this.lst_Sprites.forEach(element => {
-                element.Draw(coreData, CompleteTransform, CurrentAlpha, this.AnimationTime);
-            });    
+            this.CurrentAnim.Draw(coreData, CompleteTransform, CurrentAlpha, this.AnimationTime);   
         }
+        //draw children
+        this.lst_Sprites.forEach(element => {
+            element.Draw(coreData, CompleteTransform, CurrentAlpha, this.AnimationTime);
+        }); 
+        
+        //draw debug lines
         if(coreData.DrawHitBoxes 
                 && this.SpriteAsset != null
                 && Object.keys(this.SpriteAsset.dctHitBoxTypes).length > 0){
@@ -440,16 +446,33 @@ class SpriteInstance extends BaseInstance {
     }
     ResetTramsform(){
         if(this.SpriteAsset == null){
+            this.LocalTransform = new Matrix3X3();
             return;
         }
         this.LocalTransform.Assign(this.SpriteAsset.Transform);
+    }
+        /**
+     * @param {string} str_Name 
+     */
+    Sprite_GetSprite(str_Name){
+        var lst_SpritePath = this.LstSprite_GetPathToSpriteByPath(str_Name);
+        if(lst_SpritePath == null){
+            return null;
+        }
+        return lst_SpritePath[lst_SpritePath.length - 1]; 
+    }
+    AttachSprite(Sprite_ToAttach){
+        if(Sprite_ToAttach == null){
+            return;
+        }
+        this.lst_Sprites.push(Sprite_ToAttach);
     }
     /**
      * @param {string} str_Name 
      * @param {Matrix3x3} ParentTransform
      */
-    Matrix_GetTransform(str_Name, ParentTransform = null){
-        var lst_SpritePath = this.LstSprite_GetPathToSprite(str_Name);
+    Matrix_GetTransformByPath(str_Name, ParentTransform = null){
+        var lst_SpritePath = this.LstSprite_GetPathToSpriteByPath(str_Name);
         if(lst_SpritePath == null){
             return null;
         }
@@ -464,19 +487,27 @@ class SpriteInstance extends BaseInstance {
         return RetVal;
     }
     /**
-     * @param {string} str_Name 
+     * @param {SpriteInstance} Sprite_ToFind 
+     * @param {Matrix3x3} ParentTransform
      */
-    Sprite_GetSprite(str_Name){
-        var lst_SpritePath = this.LstSprite_GetPathToSprite(str_Name);
+    Matrix_GetTransformByReference(Sprite_ToFind, ParentTransform = null){
+        var lst_SpritePath = this.LstSprite_GetPathToSpriteByReference(Sprite_ToFind);
         if(lst_SpritePath == null){
             return null;
         }
-        return lst_SpritePath[lst_SpritePath.length - 1]; 
+        var RetVal = new Matrix3X3();
+        if(ParentTransform != null){
+            RetVal.MultiplyMatrix(ParentTransform);
+        }
+        lst_SpritePath.forEach((element)=> {
+            RetVal.MultiplyMatrix(element.LocalTransform);
+        });
+        return RetVal;
     }
     /**
      * @param {string} str_Name
      */
-    LstSprite_GetPathToSprite(str_Name){
+    LstSprite_GetPathToSpriteByPath(str_Name){
         str_Name = str_Name.toLowerCase();
         if(this.SpriteAsset != null && this.SpriteAsset.Name == str_Name){
             var RetVal = [];
@@ -484,13 +515,34 @@ class SpriteInstance extends BaseInstance {
             return RetVal;
         }
         for(var loop = 0; loop < this.lst_Sprites.length; ++loop){
-            var RetVal = this.lst_Sprites[loop].LstSprite_GetPathToSprite(str_Name);
+            var RetVal = this.lst_Sprites[loop].LstSprite_GetPathToSpriteByPath(str_Name);
             if(RetVal != null){
                 RetVal.splice(0,0,this);
                 return RetVal;
             }
         }
         return null;
+    }
+    /**
+     * @param {SpriteInstance} Sprite_ToFind 
+     */
+    LstSprite_GetPathToSpriteByReference(Sprite_ToFind){
+        if(Sprite_ToFind == null){
+            return null;
+        }
+        var Lst_RetVal = [];
+        while(Sprite_ToFind != null){
+            Lst_RetVal.push(Sprite_ToFind);
+            if(Sprite_ToFind == this){
+                break;
+            }
+            Sprite_ToFind = Sprite_ToFind.Instance_Parent;
+        }
+        if(Sprite_ToFind != this){
+            return null;
+        }
+        Lst_RetVal.reverse();
+        return Lst_RetVal;
     }
 
 }

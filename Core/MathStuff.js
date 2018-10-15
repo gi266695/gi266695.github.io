@@ -300,7 +300,7 @@ class Vector2D{
         return true;
     }
 }
-var Vector_Zero = new Vector2D();
+var Vector_Zero = new Vector2D(0,0);
 
 /**
  * @param {Vector2D} a 

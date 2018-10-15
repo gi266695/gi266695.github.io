@@ -1,0 +1,35 @@
+{
+	"Center":{
+		"x": 1,
+		"y": 10
+	},
+	"AdjacentLevels": [
+		"Data/Structures/Splash/test1_level.json",
+		"Data/Structures/Splash/test3_level.json"
+	],
+	"Rooms":[
+		{
+			"TileSets":[
+				"Data/Structures/Splash/TestTileSet_tileset.json"
+			],
+			"Width": 3,
+			"Height": 10,
+			"UpperLeft":{
+				"x": 0,
+				"y": 0
+			},
+			"Tiles":[
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Wall","Floor","Wall"],
+				["Floor","Floor","Wall"],
+				["Wall","Wall","Wall"]
+			]
+		}
+	]
+}

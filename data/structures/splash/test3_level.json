@@ -1,0 +1,106 @@
+{
+	"Center":{
+		"x": -9,
+		"y": 17
+	},
+	"AdjacentLevels": [
+		"Data/Structures/Splash/test2_level.json"
+	],
+	"GameObject_Spawns":[
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": 2, "y": 2},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": 2, "y": 4},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": 2, "y": 6},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": 4, "y": 2},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": 4, "y": 4},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": 4, "y": 6},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": 6, "y": 2},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": 6, "y": 4},
+			"ClockWise": true
+		},
+		{
+			"Name":"simpleTurret",
+			"Center": {"x": 6, "y": 6},
+			"ClockWise": true
+		},
+		{
+			"Name":"checkpoint",
+			"Checkpoint_SpawnName": "Spawn_Bottom",
+			"Center": {"x": 15, "y": 10}
+		}
+	],
+	"Rooms":[
+		{
+			"TileSets":[
+				"Data/Structures/Splash/TestTileSet_tileset.json"
+			],
+			"Width": 10,
+			"Height": 12,
+			"UpperLeft":{
+				"x": 0,
+				"y": 0
+			},
+			"Tiles":[
+				["Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Floor","Floor","Wall","Wall","Wall","Wall","Wall","Wall","Wall"],
+				["Wall","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor","Floor"],
+				["Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall","Wall"]
+			]
+		},
+		{
+			"TileSets":[
+				"Data/Structures/Splash/TestTileSet_tileset.json"
+			],
+			"Width": 8,
+			"Height": 5,
+			"UpperLeft":{
+				"x": 10,
+				"y": 8
+			},
+			"Tiles":[
+				["NULL","NULL","NULL","Wall","Wall","Wall","Wall","Wall"],
+				["Wall","Wall","Wall","Wall","Floor","Floor","Floor","Wall"],
+				["Floor","Floor","Floor","Floor","Floor","Floor","Floor","Wall"],
+				["Wall","Wall","Wall","Wall","Floor","Floor","Floor","Wall"],
+				["NULL","NULL","NULL","Wall","Wall","Wall","Wall","Wall"]
+			]
+		}
+	]
+}

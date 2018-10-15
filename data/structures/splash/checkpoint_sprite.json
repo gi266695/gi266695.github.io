@@ -1,0 +1,169 @@
+{
+	"ScaleX": 0.017,
+	"ScaleY": 0.017,
+	"Animations": [
+	{
+		"Name": "Idle"
+	},
+	{
+		"Name": "Active",
+		"Steps": [{
+            "EndTime": 2,
+			"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+			"MatrixAnimations": [{
+				"Rotate": {
+					"c": 0			
+				}
+			},{
+				"MoveX": {
+					"b": 25
+				}
+			}],
+			"AlphaAnimations": [{
+				"b": 0.5
+			}]
+		},
+		{
+			"StartTime": 2,
+			"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+			"MatrixAnimations": [{
+				"Rotate": {
+					"b": 1,
+					"c": 0		
+				}
+			},
+			{
+				"MoveX": {
+					"c": 50
+				}
+			}]
+		},
+		{
+			"EndTime": 2,
+			"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+			"MatrixAnimations": [{
+				"Rotate": {
+					"c": 2.0944					
+				}
+			},
+			{
+				"MoveX": {
+					"b": 25
+				}
+			}],
+			"AlphaAnimations": [{
+				"b": 0.5
+			}]
+		},
+		{
+			"StartTime": 2,
+			"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+			"MatrixAnimations": [{
+				"Rotate": {
+					"b": 1,
+					"c": 2.0944			
+				}
+			},
+			{
+				"MoveX": {
+					"c": 50
+				}
+			}]
+		},
+		{
+			"EndTime": 2,
+			"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+			"MatrixAnimations": [{
+				"Rotate": {
+					"c": 4.18879				
+				}
+			},
+			{
+				"MoveX": {
+					"b": 25
+				}
+			}],
+			"AlphaAnimations": [{
+				"b": 0.5
+			}]
+		},
+		{
+			"StartTime": 2,
+			"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+			"MatrixAnimations": [{
+				"Rotate": {
+					"b": 1,
+					"c": 4.18879				
+				}
+			},
+			{
+				"MoveX": {
+					"c": 50
+				}
+			}]
+		}]
+	}],
+	"Sprites": [{
+		"Name": "Center_Items",
+		"Animations": [{
+			"Name": "Idle",
+			"Steps": [{
+				"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+				"MatrixAnimations": [{
+					"Rotate": {
+						"b": -2,
+						"c": 0		
+					}
+				},
+				{
+					"MoveX": {
+						"c": 20
+					}
+				}]
+			},
+			{
+				"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+				"MatrixAnimations": [{
+					"Rotate": {
+						"b": -2,
+						"c": 2.0944
+						
+					}
+				},
+				{
+					"MoveX": {
+						"c": 20
+					}
+				}]
+			},
+			{
+				"Animations": ["Data/Structures/Splash/TestSparcle_anim.json"],
+				"MatrixAnimations": [{
+					"Rotate": {
+						"b": -2,
+						"c": 4.18879
+						
+					}
+				},
+				{
+					"MoveX": {
+						"c": 20
+					}
+				}]
+			}]
+		}]
+	},
+	{
+		"Name": "Spawn_Position",
+		"CenterX": 0,
+		"CenterY": 0
+	}],
+	"HitBoxes": [{
+		"Name": "interaction_Range",
+		"Boxes": [{
+			"Type": "circle",
+			"Radius": 250,
+			"Points": 10
+		}]
+	}]
+}

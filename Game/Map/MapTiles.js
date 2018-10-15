@@ -70,6 +70,19 @@ class TileFactory extends BaseAsset {
         }
         return null;
     }
+    /**
+     * @param {Vector2D} Vector_Center 
+     */
+    Sprite_GetMiniMapSprite(Str_Name, Vector_Center){
+        if(Str_Name == null || Vector_Center == null){
+            return null;
+        }
+        Str_Name = Str_Name.toLowerCase();
+        if(Str_Name in this.Dct_Tiles){
+            return this.Dct_Tiles[Str_Name].Sprite_GetMiniMapSprite(Vector_Center);
+        }
+        return null;
+    }
 }
 
 class TileDef extends BaseAsset {
@@ -87,6 +100,8 @@ class TileDef extends BaseAsset {
         this.Bool_BlocksVision = false;
         this.Bool_BlocksShots = false;
         this.Bool_BlocksMovement = false;
+
+        this.SpriteDef_MapTileDef = null;
     }
     /**
      * Load data from file now that the file has been loaded
@@ -156,14 +171,15 @@ class TileDef extends BaseAsset {
      * After This has been loaded this is used to find and load any files this needs (images sounds etc...)
      */
     LstStr_GetDependencies(){
-        var retVal = [];
+        var LstStr_RetVal = [];
         if(this.Str_Animation != null){
-            retVal.push(this.Str_Animation);
+            LstStr_RetVal.push(this.Str_Animation);
         }
         if(this.AnimationReference != null){
-            retVal.push.apply(retVal, this.AnimationReference.LstStr_GetDependencies());
+            LstStr_RetVal.push.apply(LstStr_RetVal, this.AnimationReference.LstStr_GetDependencies());
         }
-        return retVal;
+        LstStr_RetVal.push("Data2/map/minimap_tile_sprite.json");
+        return LstStr_RetVal;
     }
     /**
      * After all dependencies have been loaded this is called so that this can grab references to anything it needs
@@ -179,9 +195,9 @@ class TileDef extends BaseAsset {
         else if(this.AnimationReference != null){
             this.AnimationReference.SetDependencies(assetLibrary);
         }
+        this.SpriteDef_MapTileDef = assetLibrary.GetSpriteDef("Data2/map/minimap_tile_sprite.json");
     }
     /**
-     * 
      * @param {Vector2D} Vector_Center 
      */
     CreateInstance(Vector_Center){
@@ -192,6 +208,37 @@ class TileDef extends BaseAsset {
         }
         RetVal.Init(Vector_Center);
         return RetVal;
+    }
+    /**
+     * @param {Vector2D} Vector_Center 
+     */
+    Sprite_GetMiniMapSprite(Vector_Center){
+        if(this.SpriteDef_MapTileDef == null){
+            return null;
+        }
+        var Sprite_RetVal = this.SpriteDef_MapTileDef.SpriteInstance_GetNewInstance(null);
+        if(Sprite_RetVal == null){
+            return null;
+        }
+        if(Vector_Center != null){
+            Sprite_RetVal.LocalTransform.TranslateSelf(Vector_Center.x, Vector_Center.y);
+        }
+
+        switch(this.Num_Priority){
+        case Enum_ObjectPriorities.PRIORITY_MAP_TILE_FLOOR:
+            Sprite_RetVal.SetAnimation('floor');
+            break;
+
+        case Enum_ObjectPriorities.PRIORITY_MAP_TILE_WALL_TALL:
+            Sprite_RetVal.SetAnimation('wall');
+            break;
+
+        default:
+        case Enum_ObjectPriorities.PRIORITY_MAP_TILE_WALL_SHORT:
+            Sprite_RetVal.SetAnimation('idle');
+            break;
+        }
+        return Sprite_RetVal;
     }
 }
 

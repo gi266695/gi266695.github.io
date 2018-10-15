@@ -69,7 +69,7 @@ class GameObject extends BaseInstance{
     Vector_GetAudioCenter(){
         return this.Matrix_GetTransform().Vector_MultiplyVector(Vector_Zero);
     }
-    bool_LoadFromFileData(jsonObject){
+    bool_LoadFromFileData(Vector_ParentPosition, jsonObject){
         if(jsonObject == null
                 || typeof jsonObject !== 'object'
                 || typeof jsonObject.Name !== 'string'){
@@ -85,7 +85,10 @@ class GameObject extends BaseInstance{
         */
         var Center = new Vector2D();
         if(Center.bool_LoadFromFileData("", jsonObject.Center)){
-            this.Vector_Center = jsonObject.Center;
+            this.Vector_Center = Center;
+        }
+        if(Vector_ParentPosition != null){
+            this.Vector_Center.AddToSelf(Vector_ParentPosition);
         }
         if(typeof jsonObject.Rotation === 'number'){
             this.Rotation = jsonObject.Rotation;
@@ -317,12 +320,13 @@ function LstStr_GetGameObjectDependencies(){
     retVal.push.apply(retVal, PlayerObject.LstStr_GetDependecies());
     retVal.push.apply(retVal, SimpleTurret.LstStr_GetDependecies());
     retVal.push.apply(retVal, SimpleBullet.LstStr_GetDependecies());
+    retVal.push.apply(retVal, CheckpointObject.LstStr_GetDependecies());
     return retVal;
 }
 /**
  * @param {array} JSONSpawn 
  */
-function GameObject_BuildFromSpawn(JSONSpawn){
+function GameObject_BuildFromSpawn(Vector_ParentPosition, JSONSpawn){
     if(JSONSpawn == null
             || typeof JSONSpawn !== 'object'
             || typeof JSONSpawn.Name !== 'string'){
@@ -338,7 +342,14 @@ function GameObject_BuildFromSpawn(JSONSpawn){
     switch(JSONSpawn.Name){
         case 'simpleturret':
             RetVal = new SimpleTurret();
-            if(!RetVal.bool_LoadFromFileData(JSONSpawn)){
+            if(!RetVal.bool_LoadFromFileData(Vector_ParentPosition, JSONSpawn)){
+                RetVal = null
+            }
+            break;
+            
+        case Checkpoint_SpawnName:
+            RetVal = new CheckpointObject();
+            if(!RetVal.bool_LoadFromFileData(Vector_ParentPosition, JSONSpawn)){
                 RetVal = null
             }
             break;

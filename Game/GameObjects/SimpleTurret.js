@@ -149,8 +149,6 @@ class SimpleTurret extends GameObject{
                 DirectionVector.Assign(this.Obj_AgroTarget.Vector_Center);
                 DirectionVector.SubtractFromSelf(this.Vector_Center);
                 var Direction = DirectionVector.Num_GetRadians();
-                var test1 = Num_ClampRadians(Direction);
-                var test2 = Num_ClampRadians(this.Num_TurretRotation);
 
                 var RotateAmount = Num_ClampRadians(Direction) - Num_ClampRadians(this.Num_TurretRotation);
                 if(RotateAmount >= Math.PI){
@@ -171,15 +169,17 @@ class SimpleTurret extends GameObject{
                 //if we are close enough start shooting if we are not already
                 if(Math.abs(RotateAmount) <= (Math.PI / 10) && this.Enum_State == Enum_TurretStates.TURRET_AGRO){
                     this.SetState(Enum_TurretStates.TURRET_FIRE_START);
-
                 }
             }
             break;
         }
         this.UpdateMapInforation();
     }
-    bool_LoadFromFileData(jsonObject){
-        if(!super.bool_LoadFromFileData(jsonObject)){
+    /**
+     * @param {object} jsonObject 
+     */
+    bool_LoadFromFileData(Vector_ParentPosition, jsonObject){
+        if(!super.bool_LoadFromFileData(Vector_ParentPosition, jsonObject)){
             return false;
         }
         /**
@@ -214,7 +214,7 @@ class SimpleTurret extends GameObject{
 
             case Enum_TurretStates.TURRET_FIRE_END:
             {
-                var SpawnTransform = this.Sprite.Matrix_GetTransform("BulletSpawn", this.Matrix_GetTransform());
+                var SpawnTransform = this.Sprite.Matrix_GetTransformByPath("BulletSpawn", this.Matrix_GetTransform());
                 if(SpawnTransform != null){
                     var Center = new Vector2D();
                     Center = SpawnTransform.Vector_MultiplyVector(Center);

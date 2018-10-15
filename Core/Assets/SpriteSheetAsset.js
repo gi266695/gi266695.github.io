@@ -20,6 +20,7 @@ class SpriteSheetAsset extends BaseAsset {
         this.Loop = false;
         this.AdditiveBlend = false;
         this.AlphaValue = 1.0;
+        this.ImageHasOpacity = true;
 
         this.Image = null; 
     }
@@ -88,6 +89,7 @@ class SpriteSheetAsset extends BaseAsset {
         CompleteTransform.SetContextTransform(context);
         context.globalCompositeOperation = (this.AdditiveBlend ? 'lighter' : 'source-over');
         context.globalAlpha = CompleteAlpha;
+        context.alpha = this.ImageHasOpacity && CompleteAlpha >= 1; //Not sure if this does anything
 
         context.drawImage(this.Image,
                             FrameWidth * FrameColumn,
@@ -123,6 +125,7 @@ class SpriteSheetAsset extends BaseAsset {
             "Remainder": 0,
             "Loop": true,
             "AdditiveBlend": false,
+            "HasOpacity": false,
             "Alpha": 1,
         }
         */
@@ -177,6 +180,9 @@ class SpriteSheetAsset extends BaseAsset {
         }
         if(typeof jsonObject.AdditiveBlend === 'boolean'){
             this.AdditiveBlend = jsonObject.AdditiveBlend;
+        }
+        if(typeof jsonObject.HasOpacity === 'boolean'){
+            this.ImageHasOpacity = jsonObject.HasOpacity;
         }
         if(typeof jsonObject.Alpha === "number"){
             this.AlphaValue = jsonObject.Alpha;
