@@ -14,80 +14,25 @@
 <div id="sourceWindow" style= "background:black;">
 </div>
 <script> //Mainloop should be loaded becuase this comes after it
-
-    var FirstTick = true;
+    Enum_GameState = {
+        GAME_FIRST_STATE: -1,
+        GAME_ASSETS_UNLOADED: 0,
+        GAME_SELECT_PLAYER: 1,
+        GAME_IN_GAME_PLAY: 2
+    };
+    var Enum_CurrentGameState = Enum_GameState.GAME_FIRST_STATE;
 
     var sourceWindow = document.getElementById("sourceWindow");
     var FrameTime = document.getElementById("FrameTime");
     var inputCheckBox_ShowHitBoxes = document.getElementById("inputCheckBox_ShowHitBoxes"); 
     var inputCheckBox_ShowSpriteBoxes = document.getElementById("inputCheckBox_ShowSpriteBoxes"); 
     var inputCheckBox_ShowSpriteCenters = document.getElementById("inputCheckBox_ShowSpriteCenters");
-    var gameplayLayer = null;
 
     var LastCoreData = null;
 
     var MinFrameRate = null;
     var MaxFrameRate = null;
 
-    //Mainloop.js
-    Core_Init(window, document, sourceWindow, "Core/", (coreData, DeltaTime) => {
-        LastCoreData = coreData;
-
-        if(FirstTick){
-            FirstTick = false;
-            lstGameScripts = ["/Game/GameObjects/GameObject.js"
-                                , "/Game/GameObjects/SimpleBullet.js"
-                                , "/Game/GameObjects/SimpleTurret.js"
-                                , "/Game/GameObjects/PlayerObject.js"
-                                , "/Game/Map/MapTiles.js"
-                                , "/Game/Map/MapSprites.js"
-                                , "/Game/Map/Level.js"
-                                , "/Game/GameAssetLibrary.js"
-                                , "/Game/GameplayLayer.js"];
-
-            Core_LoadScripts(coreData, lstGameScripts, () => {
-                coreData.AssetLibrary = new GameAssetLibrary();
-                coreData.AssetLibrary.SetDependencies(coreData);
-                coreData.AssetLibrary.LoadAssets(LstStr_GetGameObjectDependencies(), ()=> {
-                    
-                    gameplayLayer = new GameplayLayer();
-                    coreData.LayerStack.AddLayer(gameplayLayer, 1);
-                });
-            });
-            var DefaultChannel = coreData.AudioManager.Chanel_GetChannel(-1, true);
-            DefaultChannel.Num_DefualtMinBeforeDropoff = 10;
-            DefaultChannel.Num_DefualtDropOffRange = 10;
-        }
-        //enforce aspect ratio (16/9)
-        var MaxHeight = window.innerHeight;
-
-        var style = coreData.WindowObj.getComputedStyle(sourceWindow, null);
-        var Num_Width = parseInt(style.width);
-        var Num_Height = Num_Width * (9/16);
-        if(Num_Height > MaxHeight){
-            Num_Height = MaxHeight;        
-        }
-
-        sourceWindow.style.height = Num_Height + "px";
-
-        //scale up/down screen based on size
-        var Scale = 1;
-        if(Num_Width != 0){
-            Scale = Num_Width / 20;
-        }
-        coreData.LayerStack.GlobalTransform.SetToScale(Scale, Scale);
-
-        //tick layer stack
-        coreData.TickDraw(DeltaTime);
-
-        if(MinFrameRate == null || MinFrameRate > DeltaTime){
-            MinFrameRate = DeltaTime;
-        }
-        if(MaxFrameRate == null || MaxFrameRate < DeltaTime){
-            MaxFrameRate = DeltaTime;
-        }
-        FrameTime.innerHTML = DeltaTime + "<br>Min: " + MinFrameRate + "<br>Max:" + MaxFrameRate + "<br>";
-    });
     //show hitboxes
     if(inputCheckBox_ShowHitBoxes != null){
         inputCheckBox_ShowHitBoxes.onclick = () => {
@@ -113,6 +58,151 @@
                 return;
             }
             LastCoreData.DrawSpriteCenters = inputCheckBox_ShowSpriteCenters.checked;
+        }
+    }
+
+    //Mainloop.js
+    Core_Init(window, document, sourceWindow, "Core/", GameTick);
+
+    /**
+     * @param {Number} DeltaTime 
+     * @param {CoreData} coreData 
+     */
+    function GameTick(coreData, DeltaTime){
+        LastCoreData = coreData;
+
+        //handle game state
+        switch(Enum_CurrentGameState){
+            case Enum_GameState.GAME_FIRST_STATE:
+                SetGameState(coreData, Enum_GameState.GAME_ASSETS_UNLOADED);
+                break;
+            case Enum_GameState.GAME_ASSETS_UNLOADED:
+                if(coreData.GameSave != undefined //Did script load finish
+                        && !coreData.AssetLibrary.Bool_IsLoading()){
+
+                    SetGameState(coreData, Enum_GameState.GAME_SELECT_PLAYER);
+                    //SetGameState(coreData, Enum_GameState.GAME_IN_GAME_PLAY);
+                }
+                break;
+            case Enum_GameState.GAME_SELECT_PLAYER:
+            case Enum_GameState.GAME_IN_GAME_PLAY:
+                break;
+        }
+        //enforce aspect ratio (16/9)
+        var MaxHeight = window.innerHeight;
+
+        var style = coreData.WindowObj.getComputedStyle(sourceWindow, null);
+        var Num_Width = parseInt(style.width);
+        var Num_Height = Num_Width * (9/16);
+        if(Num_Height > MaxHeight){
+            Num_Height = MaxHeight;        
+        }
+
+        sourceWindow.style.height = Num_Height + "px";
+
+        //scale up/down screen based on size
+        var Scale = 1;
+        if(Num_Width != 0){
+            Scale = Num_Width / 20;
+        }
+        coreData.LayerStack.GlobalTransform.SetToScale(Scale, Scale);
+
+        //tick layer stack
+        coreData.TickDraw(DeltaTime);
+        if(coreData.GameSave != undefined){
+            coreData.GameSave.SaveIfNeeded(coreData);
+        }
+
+        if(MinFrameRate == null || MinFrameRate > DeltaTime){
+            MinFrameRate = DeltaTime;
+        }
+        if(MaxFrameRate == null || MaxFrameRate < DeltaTime){
+            MaxFrameRate = DeltaTime;
+        }
+        FrameTime.innerHTML = DeltaTime + "<br>Min: " + MinFrameRate + "<br>Max:" + MaxFrameRate + "<br>";
+    }
+    /**
+     * @param {Number} Enum_State 
+     * @param {CoreData} coreData 
+     */
+    function SetGameState(coreData, Enum_State){
+        Enum_CurrentGameState = Enum_State;
+
+        switch(Enum_CurrentGameState){
+        case Enum_GameState.GAME_ASSETS_UNLOADED:
+        {
+            lstGameScripts = ["/Game/GameSave.js"
+                                , "/Game/GameObjects/GameObject.js"
+                                , "/Game/GameObjects/SimpleBullet.js"
+                                , "/Game/GameObjects/SimpleTurret.js"
+                                , "/Game/GameObjects/CheckpointObject.js"
+                                , "/Game/GameObjects/PlayerObject.js"
+                                , "/Game/Map/MapTiles.js"
+                                , "/Game/Map/MapSprites.js"
+                                , "/Game/Map/Level.js"
+                                , "/Game/GameAssetLibrary.js"
+                                , "/Game/GameplayLayer.js"
+                                , "/Game/MiniMapLayer.js"
+                                , "/Game/PlayerSelectScreen.js"];
+
+            Core_LoadScripts(coreData, lstGameScripts, () => {
+                coreData.AssetLibrary = new GameAssetLibrary();
+                coreData.AssetLibrary.SetDependencies(coreData);
+
+                var newSave = new GameSave();
+                newSave.FirstInit(coreData, "GameSaveCoockie");
+                //For the sake of simplicity will always start with at least one player
+                if(!newSave.Dct_PlayerSaves.length <= 0){
+                    newSave.PlayerSave_CreateNewPlayer();
+                }
+                //for the sake of simplicity will always start with 1 player selected
+                if(!newSave.PlayerSave_GetSelectedPlayer()){
+                    var Num_FirstID = -1;
+                    for(var Num_ID in this.GameSave.Dct_PlayerSaves){
+                        Num_FirstID = this.GameSave.Dct_PlayerSaves[Num_ID].Num_ID;
+                        break;
+                    }
+                    newSave.SetSelectedPlayer(Num_FirstID);
+                }
+                
+                var Lst_AssetLoads = LstStr_GetGameObjectDependencies();
+                //it does not matter which level we push we hit all of the adjacent levels eventually
+                Lst_AssetLoads.push("Data/Structures/Splash/test1_level.json");
+                coreData.AssetLibrary.LoadAssets(Lst_AssetLoads, ()=> {
+                    //do nothing yet as more level dependcies may still be loading
+                });
+            });
+            var DefaultChannel = coreData.AudioManager.Chanel_GetChannel(-1, true);
+            DefaultChannel.Num_DefualtMinBeforeDropoff = 10;
+            DefaultChannel.Num_DefualtDropOffRange = 10;
+        }
+            break;
+
+        case Enum_GameState.GAME_SELECT_PLAYER:
+            {
+                var PlayerSelect = new PlayerSelectScreen();
+                PlayerSelect.SetDependencies(coreData);
+                PlayerSelect.OpenScreen(() => {
+                    SetGameState(coreData, Enum_GameState.GAME_IN_GAME_PLAY);
+                });
+            }
+            break;
+            
+        case Enum_GameState.GAME_IN_GAME_PLAY:
+        {
+            //when not more loads are queued that when were ready
+            var gameplayLayer = new GameplayLayer(() => {
+                SetGameState(coreData, Enum_GameState.GAME_SELECT_PLAYER);
+            });
+
+            var str_Checkpoint = coreData.GameSave.Str_GetLastCheckPoint_SelectedPlayer();
+            if(str_Checkpoint == null){
+                str_Checkpoint = "Spawn_Bottom";
+            }
+            gameplayLayer.SetPlayerRespawn(str_Checkpoint);
+            coreData.LayerStack.AddLayer(gameplayLayer, 1);
+        }
+            break;
         }
     }
 

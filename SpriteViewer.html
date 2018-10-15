@@ -46,10 +46,11 @@
         if(FirstTick){
             Layer = new GameLayer();
             coreData.LayerStack.AddLayer(Layer, 1);
+            coreData.InputManager.Bool_UsingScrollWheel = true;
             FirstTick = false;
         }
 
-                //zoom in/out
+        //zoom in/out
         if(coreData != null
                 && coreData.InputManager != null
                 && coreData.InputManager.Bool_HasFocus){
