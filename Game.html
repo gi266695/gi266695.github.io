@@ -152,14 +152,14 @@
                 var newSave = new GameSave();
                 newSave.FirstInit(coreData, "GameSaveCoockie");
                 //For the sake of simplicity will always start with at least one player
-                if(!newSave.Dct_PlayerSaves.length <= 0){
+                if(!Object.keys(newSave.Dct_PlayerSaves) <= 0){
                     newSave.PlayerSave_CreateNewPlayer();
                 }
                 //for the sake of simplicity will always start with 1 player selected
                 if(!newSave.PlayerSave_GetSelectedPlayer()){
                     var Num_FirstID = -1;
-                    for(var Num_ID in this.GameSave.Dct_PlayerSaves){
-                        Num_FirstID = this.GameSave.Dct_PlayerSaves[Num_ID].Num_ID;
+                    for(var Num_ID in newSave.Dct_PlayerSaves){
+                        Num_FirstID = newSave.Dct_PlayerSaves[Num_ID].Num_ID;
                         break;
                     }
                     newSave.SetSelectedPlayer(Num_FirstID);
