@@ -19,6 +19,7 @@ class PlayerSelectScreen {
         this.DctButton_Saves = {};
 
         this.Div_MainPanel = null;
+        this.p_info = null;
         this.TextInput_Name = null;
         this.Button_Play = null;
         this.Button_CreateNewPlayer = null;
@@ -138,6 +139,7 @@ class PlayerSelectScreen {
             return;
         }
         this.Div_MainPanel.innerHTML = '';
+        this.p_info = null;
         this.TextInput_Name = null;
         this.Button_Play = null;
         this.Button_CreateNewPlayer = null;
@@ -165,15 +167,15 @@ class PlayerSelectScreen {
 
         Div_Centered.appendChild(p_Title);
 
-        var p_info = document.createElement('p');
-        p_info.innerHTML = 'Type To Change Name';
-        p_info.style.color = "white";
-        p_info.style.fontFamily = 'arial';
-        p_info.style.fontSize = '80%';
-        p_info.style.margin = 0;
-        p_info.style.padding = 0;
+        this.p_info = document.createElement('p');
+        this.p_info.innerHTML = 'Type To Change Name';
+        this.p_info.style.color = "white";
+        this.p_info.style.fontFamily = 'arial';
+        this.p_info.style.fontSize = '80%';
+        this.p_info.style.margin = 0;
+        this.p_info.style.padding = 0;
 
-        Div_Centered.appendChild(p_info);
+        Div_Centered.appendChild(this.p_info);
 
         this.TextInput_Name = this.DocumentObj.createElement('input');
         this.TextInput_Name.type = 'text';
@@ -289,8 +291,12 @@ class PlayerSelectScreen {
                     this.Button_Play.innerHTML = SelectedSave.Str_LastCheckPoint != null ? 'CONTINUE GAME' : 'START GAME';
                 }
             }
+            if(this.p_info != null){
+                this.p_info.style.visibility = SelectedSave == null ? 'hidden' : 'visible';
+            }
             if(this.TextInput_Name != null){
-                this.TextInput_Name.value = SelectedSave != null ? Save.Str_Name : "";  //TODO should definitly sanitize this     
+                this.TextInput_Name.style.visibility = SelectedSave == null ? 'hidden' : 'visible';
+                this.TextInput_Name.value = SelectedSave != null ? SelectedSave.Str_Name : "";  //TODO should definitly sanitize this     
             }
         }
     }
@@ -312,6 +318,10 @@ class PlayerSelectScreen {
         this.Div_ListPanel = null;
         this.Div_MainPanel = null;
         this.DctButton_Saves = {};
+        this.p_info = null;
+        this.TextInput_Name = null;
+        this.Button_Play = null;
+        this.Button_CreateNewPlayer = null;
 
         if(this.Func_OnClose != null){
             this.Func_OnClose();

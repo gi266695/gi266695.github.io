@@ -152,7 +152,7 @@
                 var newSave = new GameSave();
                 newSave.FirstInit(coreData, "GameSaveCoockie");
                 //For the sake of simplicity will always start with at least one player
-                if(!Object.keys(newSave.Dct_PlayerSaves) <= 0){
+                if(!newSave.Bool_HasPlayers()){
                     newSave.PlayerSave_CreateNewPlayer();
                 }
                 //for the sake of simplicity will always start with 1 player selected

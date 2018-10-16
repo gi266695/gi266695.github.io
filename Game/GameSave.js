@@ -158,6 +158,12 @@ class GameSave {
         }
         return false;
     }
+    Bool_HasPlayers(){
+        for(var Num_Id in this.Dct_PlayerSaves){
+            return true;
+        }
+        return false;
+    }
     ClearSaveFlags(){
         this.Bool_FlagNeedsSave = false;
         for(var Num_Id in this.Dct_PlayerSaves){
